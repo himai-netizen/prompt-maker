@@ -40,18 +40,20 @@ if "favorites" not in st.session_state: st.session_state.favorites = []
 
 st.title("🎨 画像生成プロンプトメーカー Pro")
 
-# --- 2. データ定義 ---
+# --- 2. データ定義の更新 ---
 categories = {
     "人間": ["女性", "男性"],
     "動物・魔物": ["猫", "犬", "馬", "虎", "ライオン", "鷲", "龍", "狼", "グリフォン"],
-    "自然・風景": ["山", "海", "森", "滝", "宇宙", "砂漠", "浮遊島"],
+    "風景・環境": ["山", "海", "森", "滝", "空", "崖", "ビル群", "宇宙", "砂漠", "洞窟", "浮遊島"], # 追加
     "タイトルロゴ": ["ファンタジーロゴ", "SFロゴ", "ホラーロゴ", "企業ロゴ", "ヴィンテージロゴ"]
 }
 
 subject_to_en = {
     "女性": "woman", "男性": "man",
     "猫": "cat", "犬": "dog", "馬": "horse", "虎": "tiger", "ライオン": "lion", "鷲": "eagle", "龍": "dragon", "狼": "wolf", "グリフォン": "griffin",
-    "山": "mountains", "海": "ocean", "森": "forest", "滝": "waterfall", "宇宙": "space", "砂漠": "desert", "洞窟": "cave", "浮遊島": "floating island",
+    "山": "mountains", "海": "ocean", "森": "forest", "滝": "waterfall", 
+    "空": "sky", "崖": "cliff", "ビル群": "cityscape, skyscrapers", # 追加
+    "宇宙": "space", "砂漠": "desert", "洞窟": "cave", "浮遊島": "floating island",
     "ファンタジーロゴ": "fantasy game logo", "SFロゴ": "sci-fi movie logo", "ホラーロゴ": "horror logo", "企業ロゴ": "tech logo", "ヴィンテージロゴ": "vintage logo"
 }
 
@@ -73,26 +75,28 @@ with st.sidebar:
 # --- 4. 詳細設定 (各モジュール呼び出し) ---
 st.header(f"2. {category}の詳細設定")
 prompt_details = []
-history_title = subject # 履歴用の名前を初期化
+history_title = subject 
 
 if category == "人間":
     res, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
     prompt_details.extend(res)
     if selected_skin != "指定なし": prompt_details.append(skin_tones[selected_skin])
     history_title = f"{subject} / {f_style} / {cloth}"
+
 elif category == "動物・魔物":
     res, state = animal_module.get_animal_settings(subject_to_en[subject])
     prompt_details.extend(res)
     history_title = f"{subject} ({state})"
-elif category == "自然・風景":
+
+# ↓↓↓ ここが「風景・環境」に一致しているか確認してください ↓↓↓
+elif category == "風景・環境":
     res, vibe = landscape_module.get_landscape_settings(subject_to_en[subject])
     prompt_details.extend(res)
     history_title = f"{subject} ({vibe})"
+
 elif category == "タイトルロゴ":
-    # 戻り値を増やして、形状・質感・世界観を受け取るように修正
     res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
     prompt_details.extend(res)
-    # 履歴タイトルに詳細を詰め込む
     history_title = f"Logo: {text} / {shape} / {world} / {material}"
 
 # --- 5. 共通設定 ---
