@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import os # ローカルかサーバーか判別するために追加
+import os
 import human_module
 import animal_module
 import landscape_module
@@ -8,15 +8,11 @@ import logo_module
 
 # --- 0. パスワード機能 (ローカル時はスキップ) ---
 def check_password():
-    # Streamlit Cloud上かどうかの判定 (サーバー上には通常 'STREAMLIT_SERVER_PORT' 等の環境変数がある)
     is_release = "STREAMLIT_SERVER_PORT" in os.environ or "PORT" in os.environ
-
-    # ローカル環境ならチェックせずに True を返す
     if not is_release:
         return True
 
     def password_entered():
-        # パスワードを aloft1234 に変更
         if st.session_state["password"] == st.secrets.get("password", "aloft1234"): 
             st.session_state["password_correct"] = True
             del st.session_state["password"]
@@ -37,7 +33,6 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 1. アプリ設定以降は前回と同じ ---
 # --- 1. アプリ設定 ---
 st.set_page_config(page_title="プロンプトメーカーPro", layout="wide")
 if "history" not in st.session_state: st.session_state.history = []
@@ -55,7 +50,7 @@ categories = {
 
 subject_to_en = {
     "女性": "woman", "男性": "man",
-    "猫": "cat", "犬": "dog", "馬": "horse", "虎": "tiger", "ライオン": "lion", "鷲": "eagle", "狼": "wolf", "グリフォン": "griffin",
+    "猫": "cat", "犬": "dog", "馬": "horse", "虎": "tiger", "ライオン": "lion", "鷲": "eagle", "龍": "dragon", "狼": "wolf", "グリフォン": "griffin",
     "山": "mountains", "海": "ocean", "森": "forest", "滝": "waterfall", "宇宙": "space", "砂漠": "desert", "洞窟": "cave", "浮遊島": "floating island",
     "ファンタジーロゴ": "fantasy game logo", "SFロゴ": "sci-fi movie logo", "ホラーロゴ": "horror logo", "企業ロゴ": "tech logo", "ヴィンテージロゴ": "vintage logo"
 }
@@ -73,9 +68,8 @@ with st.sidebar:
 # --- 4. 詳細設定 (各モジュール呼び出し) ---
 st.header(f"2. {category}の詳細設定")
 prompt_details = []
-history_title = subject # 履歴用の名前を初期化
+history_title = subject 
 
-# 各カテゴリごとに変数を安全に取得する
 if category == "人間":
     res, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
     prompt_details.extend(res)
@@ -96,7 +90,7 @@ elif category == "タイトルロゴ":
 
 # --- 5. 共通設定 ---
 st.divider()
-st.header("3. 共通設定")
+st.header("3. 共通設定（背景・カメラ・画風）")
 c1, c2, c3 = st.columns(3)
 with c1:
     if category != "タイトルロゴ":
@@ -125,19 +119,56 @@ picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 # --- 6. 生成 ---
 st.divider()
 if st.button("✨ プロンプト生成", type="primary", use_container_width=True):
-    # prompt_detailsはこのボタンの外で確定しているのでそのまま使える
     p_list = prompt_details + [f"color theme {picked_color}", "masterpiece, best quality, highly detailed"]
     final_p = ", ".join([p for p in p_list if p])
     
+    # ネガティブプロンプトの出し分け
     if category == "タイトルロゴ":
-        final_n = "bad text, wrong font, blurry, low resolution, messy, ugly, distorted"
+        final_n = "bad text, wrong font, blurry, low resolution, messy, ugly, distorted, watermark"
     else:
         final_n = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, worst quality, low quality"
     
-    # ここではすでに確定している history_title を使う
     st.session_state.history.insert(0, {"positive": final_p, "negative": final_n, "subject": history_title})
-    st.subheader("結果")
+    st.subheader("生成結果")
     st.code(final_p)
+    st.caption("Negative Prompt:")
+    st.code(final_n)
 
-# --- 7. お気に入り・履歴 (後略) ---
-# ※ お気に入り・履歴表示のロジックをここに継続してください
+# --- 7. お気に入り ---
+st.divider()
+st.header("⭐ お気に入りプロンプト")
+if st.session_state.favorites:
+    for idx, fav in enumerate(st.session_state.favorites):
+        with st.expander(f"⭐ お気に入り {idx+1}: {fav['subject']}"):
+            st.code(fav['positive'])
+            if st.button(f"削除", key=f"del_fav_{idx}"):
+                st.session_state.favorites.pop(idx)
+                st.rerun()
+    
+    df_fav = pd.DataFrame(st.session_state.favorites)
+    csv_data = df_fav.to_csv(index=False).encode('utf_8_sig')
+    st.download_button(label="📥 お気に入りをCSVで保存", data=csv_data, file_name="my_prompts.csv", mime="text/csv")
+else:
+    st.write("お気に入りはまだありません。")
+
+# --- 8. 履歴 ---
+st.divider()
+col_h1, col_h2 = st.columns([0.8, 0.2])
+with col_h1:
+    st.header("📜 プロンプト履歴")
+with col_h2: 
+    if st.button("🗑️ 履歴全削除", use_container_width=True): 
+        st.session_state.history = []
+        st.rerun()
+
+if st.session_state.history:
+    for i, item in enumerate(st.session_state.history):
+        with st.expander(f"履歴 {len(st.session_state.history)-i}: {item['subject']}"):
+            st.code(item['positive'])
+            if st.button(f"⭐ お気に入りに追加", key=f"fav_btn_{i}"):
+                if item not in st.session_state.favorites:
+                    st.session_state.favorites.append(item)
+                    st.toast("お気に入りに追加しました！")
+                st.rerun()
+else:
+    st.write("履歴はまだありません。")
