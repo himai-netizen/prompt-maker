@@ -59,8 +59,13 @@ subject_to_en = {
 with st.sidebar:
     st.header("1. 基本選択")
     category = st.selectbox("カテゴリー", list(categories.keys()))
-    subject = st.selectbox("被写体", categories[category])
+    
+    # 表示名を「テーマ」に変更
+    subject_label = "テーマ" if category == "タイトルロゴ" else "被写体"
+    subject = st.selectbox(subject_label, categories[category])
+    
     selected_skin = "指定なし"
+    # ...（以下、肌の色などの処理は変更なし）
     if category == "人間":
         skin_tones = {"指定なし": "", "色白": "pale skin", "美白": "fair skin", "普通": "natural skin", "小麦色": "tan skin", "褐色": "dark skin"}
         selected_skin = st.selectbox("肌の色", list(skin_tones.keys()))
@@ -68,7 +73,7 @@ with st.sidebar:
 # --- 4. 詳細設定 (各モジュール呼び出し) ---
 st.header(f"2. {category}の詳細設定")
 prompt_details = []
-history_title = subject 
+history_title = subject # 履歴用の名前を初期化
 
 if category == "人間":
     res, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
@@ -84,47 +89,68 @@ elif category == "自然・風景":
     prompt_details.extend(res)
     history_title = f"{subject} ({vibe})"
 elif category == "タイトルロゴ":
-    res, text = logo_module.get_logo_settings(subject_to_en[subject])
+    # 戻り値を増やして、形状・質感・世界観を受け取るように修正
+    res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
     prompt_details.extend(res)
-    history_title = f"Logo: {text}"
+    # 履歴タイトルに詳細を詰め込む
+    history_title = f"Logo: {text} / {shape} / {world} / {material}"
 
 # --- 5. 共通設定 ---
 st.divider()
-st.header("3. 共通設定（背景・カメラ・画風）")
+st.header("3. 共通設定（背景・カメラ・画風・サイズ）")
 c1, c2, c3 = st.columns(3)
+
 with c1:
-    # 全カテゴリー（ロゴ含む）で背景選択を可能に
-    bg_type = st.radio("背景タイプ", ["風景（天候）", "単色背景", "背景透過用（透過指定）"], horizontal=False)
-    
-    if bg_type == "単色背景":
-        bg_color = st.color_picker("背景色", "#ffffff")
-        prompt_details.append(f"on simple flat {bg_color} background")
-        
-    elif bg_type == "背景透過用（透過指定）":
-        # ロゴなどを切り抜きやすくするためのプロンプト
-        prompt_details.append("isolated on white background, high contrast, alpha channel ready, simple background")
-        st.info("💡 切り抜きやすい白背景で生成します。")
-        
-    else: # 風景（天候）
-        if category != "タイトルロゴ":
+    if category != "タイトルロゴ":
+        bg_type = st.radio("背景タイプ", ["風景（天候）", "単色背景", "背景透過用（透過指定）"], horizontal=False)
+        if bg_type == "単色背景":
+            bg_color = st.color_picker("背景色", "#ffffff")
+            prompt_details.append(f"on simple flat {bg_color} background")
+        elif bg_type == "背景透過用（透過指定）":
+            prompt_details.append("isolated on white background, high contrast, alpha channel ready, simple background")
+            st.info("💡 切り抜きやすい白背景で生成します。")
+        else:
             weather = st.selectbox("環境・天気", ["指定なし", "晴れ", "雨", "雪", "霧", "魔法の光", "木漏れ日"])
             w_dict = {"晴れ": "sunny", "雨": "rainy", "雪": "snowy", "霧": "foggy", "魔法の光": "magical light", "木漏れ日": "sun dappled"}
             if weather != "指定なし": prompt_details.append(f"{w_dict[weather]} weather")
+    else:
+        # タイトルロゴ用背景設定
+        bg_type_logo = st.radio("背景タイプ", ["単色背景", "背景透過用（透過指定）", "風景"], horizontal=False)
+        if bg_type_logo == "単色背景":
+            bg_color = st.color_picker("背景色", "#ffffff")
+            prompt_details.append(f"on simple flat {bg_color} background")
+        elif bg_type_logo == "背景透過用（透過指定）":
+            prompt_details.append("isolated on white background, high contrast, alpha channel ready, simple background")
         else:
-            st.write("ロゴに風景背景を適用します。")
+            prompt_details.append("cinematic background")
+
 with c2:
     shot = st.selectbox("カメラ距離", ["指定なし", "全身", "上半身", "顔のアップ", "引きの絵"])
     shot_dict = {"全身": "full body shot", "上半身": "medium shot", "顔のアップ": "close-up shot", "引きの絵": "wide shot"}
     if shot != "指定なし": prompt_details.append(shot_dict[shot])
+    
     angle = st.selectbox("カメラ角度", ["指定なし", "正面", "俯瞰", "アオリ", "真横"])
     angle_dict = {"正面": "eye level", "俯瞰": "high angle", "アオリ": "low angle", "真横": "side view"}
     if angle != "指定なし": prompt_details.append(angle_dict[angle])
+
+    # --- アスペクト比の追加 ---
+    aspect_ratio = st.selectbox("アスペクト比 (縦横比)", ["指定なし", "正方形 (1:1)", "横長 (16:9)", "縦長 (9:16)", "シネマスコープ (21:9)", "旧4:3"])
+    ar_dict = {
+        "正方形 (1:1)": "square ratio, --ar 1:1",
+        "横長 (16:9)": "wide angle, widescreen, --ar 16:9",
+        "縦長 (9:16)": "vertical, portrait orientation, --ar 9:16",
+        "シネマスコープ (21:9)": "ultra-wide, cinematic ratio, --ar 21:9",
+        "旧4:3": "standard ratio, --ar 4:3"
+    }
+    if aspect_ratio != "指定なし":
+        prompt_details.append(ar_dict[aspect_ratio])
+
 with c3:
     style = st.selectbox("画風", ["アニメ風", "実写", "水彩画", "油絵", "3D", "ピクセルアート"])
     st_dict = {"アニメ風": "anime style", "実写": "photorealistic", "水彩画": "watercolor", "油絵": "oil painting", "3D": "3D render", "ピクセルアート": "pixel art"}
     prompt_details.append(st_dict[style])
 
-picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
+    picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 
 # --- 6. 生成 ---
 st.divider()
