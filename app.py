@@ -9,7 +9,7 @@ import logo_module
 def check_password():
     def password_entered():
         # 設定したいパスワードをここに記述
-        if st.session_state["password"] == "aloft1324": 
+        if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
             del st.session_state["password"]
         else:
