@@ -93,15 +93,25 @@ st.divider()
 st.header("3. 共通設定（背景・カメラ・画風）")
 c1, c2, c3 = st.columns(3)
 with c1:
-    if category != "タイトルロゴ":
-        bg_type = st.radio("背景タイプ", ["風景（天候）", "単色背景"], horizontal=True)
-        if bg_type == "単色背景":
-            bg_color = st.color_picker("背景色", "#ffffff")
-            prompt_details.append(f"on simple flat {bg_color} background")
-        else:
+    # 全カテゴリー（ロゴ含む）で背景選択を可能に
+    bg_type = st.radio("背景タイプ", ["風景（天候）", "単色背景", "背景透過用（透過指定）"], horizontal=False)
+    
+    if bg_type == "単色背景":
+        bg_color = st.color_picker("背景色", "#ffffff")
+        prompt_details.append(f"on simple flat {bg_color} background")
+        
+    elif bg_type == "背景透過用（透過指定）":
+        # ロゴなどを切り抜きやすくするためのプロンプト
+        prompt_details.append("isolated on white background, high contrast, alpha channel ready, simple background")
+        st.info("💡 切り抜きやすい白背景で生成します。")
+        
+    else: # 風景（天候）
+        if category != "タイトルロゴ":
             weather = st.selectbox("環境・天気", ["指定なし", "晴れ", "雨", "雪", "霧", "魔法の光", "木漏れ日"])
             w_dict = {"晴れ": "sunny", "雨": "rainy", "雪": "snowy", "霧": "foggy", "魔法の光": "magical light", "木漏れ日": "sun dappled"}
             if weather != "指定なし": prompt_details.append(f"{w_dict[weather]} weather")
+        else:
+            st.write("ロゴに風景背景を適用します。")
 with c2:
     shot = st.selectbox("カメラ距離", ["指定なし", "全身", "上半身", "顔のアップ", "引きの絵"])
     shot_dict = {"全身": "full body shot", "上半身": "medium shot", "顔のアップ": "close-up shot", "引きの絵": "wide shot"}
