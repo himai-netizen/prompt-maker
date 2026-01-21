@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import os
+import getpass
+from deep_translator import GoogleTranslator  # ここに移動
 import human_module
+# ...（他のモジュール）
 import animal_module
 import landscape_module
 import logo_module
@@ -119,6 +122,42 @@ elif category == "タイトルロゴ":
     res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
     prompt_details.extend(res)
     history_title = f"Logo: {text} / {shape} / {world} / {material}"
+
+# --- 4.5 自由入力・翻訳セクション ---
+st.divider()
+st.header("追加カスタムキーワード")
+
+if "custom_keywords" not in st.session_state:
+    st.session_state.custom_keywords = []
+
+col_inp1, col_inp2 = st.columns([0.7, 0.3])
+with col_inp1:
+    # keyを指定することで、ボタン押下後に中身を操作しやすくします
+    custom_input = st.text_input("追加したい要素を日本語で入力（例：チェック柄、逆光、サイバーシティ）", key="input_box")
+
+with col_inp2:
+    st.write(" ") # ラベルとの高さを合わせるための余白
+    if st.button("翻訳して追加", type="secondary", use_container_width=True):
+        if custom_input:
+            with st.spinner('翻訳中...'):
+                try:
+                    translated = GoogleTranslator(source='ja', target='en').translate(custom_input)
+                    st.session_state.custom_keywords.append(translated)
+                    st.toast(f"追加: {translated}")
+                except Exception as e:
+                    st.error("翻訳に失敗しました。ネット接続を確認してください。")
+
+# 追加されたキーワードをタグのように表示
+if st.session_state.custom_keywords:
+    st.write("▼ 追加済みのキーワード（クリックで削除）")
+    # キーワードを横並びに表示する工夫
+    tags = st.container()
+    cols = tags.columns(min(len(st.session_state.custom_keywords), 5)) # 最大5列で折り返し
+    for i, word in enumerate(st.session_state.custom_keywords):
+        col_idx = i % 5
+        if cols[col_idx].button(f"× {word}", key=f"custom_word_{i}", use_container_width=True):
+            st.session_state.custom_keywords.pop(i)
+            st.rerun()
 
 # --- 5. 共通設定 ---
 st.divider()
