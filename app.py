@@ -6,32 +6,37 @@ import animal_module
 import landscape_module
 import logo_module
 
-# --- 0. パスワード機能 (ローカル時はスキップ) ---
+# --- 0. パスワード機能 (Secrets優先・ローカル互換) ---
 def check_password():
-    is_release = "STREAMLIT_SERVER_PORT" in os.environ or "PORT" in os.environ
-    if not is_release:
+    # 1. まずサーバー側の設定(Secrets)を確認
+    target_password = st.secrets.get("password")
+
+    # 2. サーバー側に設定がない場合（ローカルなど）
+    if target_password is None:
+        # ローカルで secrets.toml もない場合はパスワードなしで通す
         return True
 
+    # 3. パスワードが設定されている場合は必ずチェック
     def password_entered():
-        if st.session_state["password"] == st.secrets.get("password", "aloft1234"): 
+        if st.session_state["password"] == target_password:
             st.session_state["password_correct"] = True
             del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
+        # 初回表示
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
         st.info("※このアプリは関係者のみ利用可能です。")
         return False
     elif not st.session_state["password_correct"]:
+        # 間違えた場合
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
         st.error("😕 パスワードが間違っています。")
         return False
     else:
+        # 正解
         return True
-
-if not check_password():
-    st.stop()
 
 # --- 1. アプリ設定 ---
 st.set_page_config(page_title="プロンプトメーカーPro", layout="wide")
