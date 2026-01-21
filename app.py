@@ -216,23 +216,36 @@ with c3:
 
     picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 
-# --- 6. 生成 ---
-st.divider()
+# --- 6. 生成ボタン ---
 if st.button("✨ プロンプト生成", type="primary", use_container_width=True):
-    p_list = prompt_details + [f"color theme {picked_color}", "masterpiece, best quality, highly detailed"]
-    final_p = ", ".join([p for p in p_list if p])
+    # 1. 各カテゴリーの詳細 (prompt_details)
+    # 2. 自由入力のキーワード (st.session_state.custom_keywords)
+    # 3. 共通の画風やカラー設定
+    # これらをすべて合体させます
     
-    # ネガティブプロンプトの出し分け
-    if category == "タイトルロゴ":
-        final_n = "bad text, wrong font, blurry, low resolution, messy, ugly, distorted, watermark"
-    else:
-        final_n = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, worst quality, low quality"
+    final_details = prompt_details.copy() # 基本設定をコピー
     
-    st.session_state.history.insert(0, {"positive": final_p, "negative": final_n, "subject": history_title})
-    st.subheader("生成結果")
-    st.code(final_p)
-    st.caption("Negative Prompt:")
-    st.code(final_n)
+    # 【ここが重要！】自由入力のキーワードがあれば合流させる
+    if st.session_state.custom_keywords:
+        final_details.extend(st.session_state.custom_keywords)
+        
+    # 共通設定（カラーテーマや品質）を追加
+    final_details.append(f"color theme {picked_color}")
+    final_details.append("masterpiece, best quality, highly detailed")
+    
+    # プロンプトの組み立て
+    full_prompt = ", ".join(final_details)
+    
+    # 履歴への保存
+    new_data = pd.DataFrame([{
+        "日付": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+        "タイトル": history_title,
+        "プロンプト": full_prompt
+    }])
+    st.session_state.history = pd.concat([new_data, st.session_state.history], ignore_index=True)
+    
+    # 完了通知
+    st.balloons()
 
 # --- 7. お気に入り ---
 st.divider()
