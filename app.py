@@ -6,17 +6,17 @@ import animal_module
 import landscape_module
 import logo_module
 
-# --- 0. パスワード機能 (Secrets優先・ローカル互換) ---
+# --- 0. パスワード機能 (強制ロック版) ---
 def check_password():
-    # 1. まずサーバー側の設定(Secrets)を確認
-    target_password = st.secrets.get("password")
+    # Streamlit CloudのSecretsから取得（[passwords]セクションがあってもなくても探せるように記述）
+    # セクションなしの 'password' または セクションありの 'passwords.password' をチェック
+    target_password = st.secrets.get("password") or st.secrets.get("passwords", {}).get("password")
 
-    # 2. サーバー側に設定がない場合（ローカルなど）
+    # パスワードがどこにも設定されていない場合（重大な設定ミス）
     if target_password is None:
-        # ローカルで secrets.toml もない場合はパスワードなしで通す
-        return True
+        st.error("🔒 セキュリティ設定（Secrets）が見つかりません。管理者に連絡してください。")
+        st.stop() # ここでアプリを強制停止
 
-    # 3. パスワードが設定されている場合は必ずチェック
     def password_entered():
         if st.session_state["password"] == target_password:
             st.session_state["password_correct"] = True
@@ -27,7 +27,7 @@ def check_password():
     if "password_correct" not in st.session_state:
         # 初回表示
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
-        st.info("※このアプリは関係者のみ利用可能です。")
+        st.info("※関係者専用のツールです。")
         return False
     elif not st.session_state["password_correct"]:
         # 間違えた場合
@@ -37,6 +37,9 @@ def check_password():
     else:
         # 正解
         return True
+
+if not check_password():
+    st.stop()
 
 # --- 1. アプリ設定 ---
 st.set_page_config(page_title="プロンプトメーカーPro", layout="wide")
