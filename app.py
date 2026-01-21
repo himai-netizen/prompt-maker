@@ -1,26 +1,28 @@
 import streamlit as st
 import pandas as pd
-import os  # 環境判定のために追加
+import os
 import human_module
 import animal_module
 import landscape_module
 import logo_module
 
-# --- 0. パスワード機能 (ローカル時は自動パス) ---
+# --- 0. パスワード機能 (判定ロジックの最終修正版) ---
 def check_password():
-    # 実行環境がローカルかサーバーかを判定
-    # Streamlit Cloudには通常 'STREAMLIT_SERVER_PORT' 等の環境変数があります
-    is_release = "STREAMLIT_SERVER_PORT" in os.environ or "PORT" in os.environ
+    # サーバー上の特定の秘密ファイル(Secrets)の有無で環境を判定
+    # Streamlit Cloud上では、st.secrets が空でないことで判定します
+    is_cloud = len(st.secrets) > 0
 
-    # ローカル環境（is_releaseがFalse）ならチェックをスキップしてTrueを返す
-    if not is_release:
+    # ローカル環境（Secrets未設定）ならパスワードなしで通す
+    if not is_cloud:
         return True
 
-    # --- サーバー（公開版）のみ以下のチェックを実行 ---
+    # --- サーバー（Cloud）のみ実行 ---
+    # 設定の書き方に柔軟に対応（[passwords]があってもなくてもOK）
     target_password = st.secrets.get("password") or st.secrets.get("passwords", {}).get("password")
 
     if target_password is None:
-        st.error("🔒 セキュリティ設定（Secrets）が見つかりません。")
+        # 万が一、Cloud上でSecretsが読み込めない場合の安全策
+        st.error("🔒 セキュリティ設定（Secrets）を読み込めません。設定を確認してください。")
         st.stop()
 
     def password_entered():
@@ -32,6 +34,7 @@ def check_password():
 
     if "password_correct" not in st.session_state:
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
+        st.info("※関係者専用ツールです。")
         return False
     elif not st.session_state["password_correct"]:
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
@@ -40,10 +43,8 @@ def check_password():
     else:
         return True
 
-# パスワードチェック実行
 if not check_password():
     st.stop()
-
 
 # --- 1. アプリ設定 ---
 st.set_page_config(page_title="プロンプトメーカーPro", layout="wide")
