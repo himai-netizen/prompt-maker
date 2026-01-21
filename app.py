@@ -1,21 +1,27 @@
 import streamlit as st
 import pandas as pd
-import os
+import os  # 環境判定のために追加
 import human_module
 import animal_module
 import landscape_module
 import logo_module
 
-# --- 0. パスワード機能 (強制ロック版) ---
+# --- 0. パスワード機能 (ローカル時は自動パス) ---
 def check_password():
-    # Streamlit CloudのSecretsから取得（[passwords]セクションがあってもなくても探せるように記述）
-    # セクションなしの 'password' または セクションありの 'passwords.password' をチェック
+    # 実行環境がローカルかサーバーかを判定
+    # Streamlit Cloudには通常 'STREAMLIT_SERVER_PORT' 等の環境変数があります
+    is_release = "STREAMLIT_SERVER_PORT" in os.environ or "PORT" in os.environ
+
+    # ローカル環境（is_releaseがFalse）ならチェックをスキップしてTrueを返す
+    if not is_release:
+        return True
+
+    # --- サーバー（公開版）のみ以下のチェックを実行 ---
     target_password = st.secrets.get("password") or st.secrets.get("passwords", {}).get("password")
 
-    # パスワードがどこにも設定されていない場合（重大な設定ミス）
     if target_password is None:
-        st.error("🔒 セキュリティ設定（Secrets）が見つかりません。管理者に連絡してください。")
-        st.stop() # ここでアプリを強制停止
+        st.error("🔒 セキュリティ設定（Secrets）が見つかりません。")
+        st.stop()
 
     def password_entered():
         if st.session_state["password"] == target_password:
@@ -25,21 +31,19 @@ def check_password():
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # 初回表示
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
-        st.info("※関係者専用のツールです。")
         return False
     elif not st.session_state["password_correct"]:
-        # 間違えた場合
         st.text_input("パスワードを入力してください", type="password", on_change=password_entered, key="password")
         st.error("😕 パスワードが間違っています。")
         return False
     else:
-        # 正解
         return True
 
+# パスワードチェック実行
 if not check_password():
     st.stop()
+
 
 # --- 1. アプリ設定 ---
 st.set_page_config(page_title="プロンプトメーカーPro", layout="wide")
