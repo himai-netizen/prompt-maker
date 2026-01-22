@@ -74,6 +74,13 @@ def get_logo_settings(subject_en):
         }
         res.append(q_dict[quality])
 
+        # --- ここに追加：中央を尖らせるオプション ---
+        st.write("---")
+        is_sharp = st.checkbox("中央を鋭利にとがらせる (Sharp Center)")
+        if is_sharp:
+            sharp_keywords = "Sharp, Pointy, Spike, Apex, Geometric, Minimalist logo of a sharp, A diamond-shaped, 3D futuristic logo with a sharp peak in the center"
+            res.append(sharp_keywords)
+
     # 共通のベース呪文
     res.append("Pachinko style logo style, masterpiece, best quality")
     
