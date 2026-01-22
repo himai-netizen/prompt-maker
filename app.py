@@ -369,33 +369,100 @@ with c3:
     prompt_details.append(st_dict[style])
     picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 
+# --- 6.5 追加オプション ---
+st.subheader("💡 出力オプション")
+# チェックボックスを配置
+idea_mode = st.checkbox("4分割アイデアモード（番号付きで4案出力する指示を追加）")
+
 # --- 7. 生成ボタン ---
 st.divider()
+# ボタンが押された時の処理をここから記述
 if st.button("✨ プロンプト生成", type="primary", use_container_width=True):
+    # プロンプトの組み立て開始
     final_prompt_list = prompt_details.copy()
-    if st.session_state.custom_keywords:
+    
+    # 1. アイデアモードがONの場合の処理
+    if idea_mode:
+        final_prompt_list.append("split into 4 separate views, quadrant layout, numbered 1 2 3 4 on each frame, 4 different design concepts")
+    
+    # 2. 自由入力キーワードの合流
+    if "custom_keywords" in st.session_state and st.session_state.custom_keywords:
         final_prompt_list.extend(st.session_state.custom_keywords)
+        
+    # 3. 共通の品質タグなどを追加
     final_prompt_list.append(f"color theme {picked_color}")
     final_prompt_list.append("masterpiece, best quality, highly detailed")
     
+    # 4. 文字列に結合
     full_prompt = ", ".join(final_prompt_list)
     
+    # --- 履歴保存処理 ---
     new_entry = pd.DataFrame([{
         "日付": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
         "タイトル": history_title,
         "プロンプト": full_prompt
     }])
+    
+    # 履歴データの型チェックと結合
+    if not isinstance(st.session_state.history, pd.DataFrame):
+        st.session_state.history = pd.DataFrame(columns=["日付", "タイトル", "プロンプト"])
+        
     st.session_state.history = pd.concat([new_entry, st.session_state.history], ignore_index=True)
-    st.balloons()
-    st.code(full_prompt)
+    
+    # --- 画面への出力表示 ---
+    st.balloons() # お祝いの風船
+    st.success("プロンプトを生成しました！")
+    st.code(full_prompt) # 生成されたプロンプトをコピー可能にする
 
-# --- 8. 履歴表示 ---
+# --- 8. 履歴表示・お気に入り・CSV書き出し ---
 st.divider()
-st.header("📜 生成履歴")
+st.header("📜 生成履歴と管理")
+
 if isinstance(st.session_state.history, pd.DataFrame) and not st.session_state.history.empty:
-    st.dataframe(st.session_state.history, use_container_width=True)
-    if st.button("履歴をクリア"):
+    
+    # --- CSVダウンロードボタン ---
+    csv = st.session_state.history.to_csv(index=False).encode('utf_8_sig')
+    st.download_button(
+        label="📥 履歴をCSVとしてダウンロード",
+        data=csv,
+        file_name=f"prompt_history_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
+        mime="text/csv",
+    )
+
+    # --- 履歴の表示と「お気に入り」登録機能 ---
+    st.subheader("履歴一覧")
+    # 履歴を1行ずつループして、横に「お気に入り」ボタンを配置
+    for i, row in st.session_state.history.iterrows():
+        cols = st.columns([0.1, 0.2, 0.5, 0.2])
+        with cols[0]:
+            st.write(f"{len(st.session_state.history)-i}") # 番号
+        with cols[1]:
+            st.write(row["タイトル"])
+        with cols[2]:
+            st.text_small = st.code(row["プロンプト"])
+        with cols[3]:
+            if st.button("⭐ お気に入り", key=f"fav_{i}"):
+                if row["プロンプト"] not in [f["プロンプト"] for f in st.session_state.favorites]:
+                    st.session_state.favorites.append(row.to_dict())
+                    st.toast(f"「{row['タイトル']}」をお気に入りに保存しました！")
+                else:
+                    st.toast("既にお気に入りに登録されています。")
+
+    # --- お気に入りセクション ---
+    if st.session_state.favorites:
+        st.divider()
+        st.subheader("⭐ お気に入り済みプロンプト")
+        fav_df = pd.DataFrame(st.session_state.favorites)
+        st.dataframe(fav_df, use_container_width=True)
+        if st.button("お気に入りをクリア"):
+            st.session_state.favorites = []
+            st.rerun()
+
+    # --- 履歴クリア ---
+    st.divider()
+    if st.button("履歴をすべて削除", type="secondary"):
         st.session_state.history = pd.DataFrame(columns=["日付", "タイトル", "プロンプト"])
         st.rerun()
+
 else:
     st.info("履歴はまだありません。")
