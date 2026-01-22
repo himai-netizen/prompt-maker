@@ -6,23 +6,53 @@ def get_human_settings(subject_en):
     with col1:
         age = st.slider("年齢層", 5, 80, 20)
         res.append(f"{age}yo {subject_en}")
-        f_style = st.selectbox("ファッションスタイル", ["現代カジュアル", "ビジネス/フォーマル", "ファンタジー/RPG職種", "和装", "サイバーパンク"])
+        
+        # 「職種（現代・専門）」を追加
+        f_style = st.selectbox("ファッションスタイル", 
+            ["現代カジュアル", "ビジネス/フォーマル", "職種（現代・専門）", "ファンタジー/RPG職種", "和装", "サイバーパンク"]
+        )
         
         if f_style == "現代カジュアル":
             cloth = st.selectbox("衣装", ["Tシャツとジーンズ", "パーカー", "夏服ワンピース", "レザージャケット", "カーディガン"])
             c_en = {"Tシャツとジーンズ": "t-shirt and blue jeans", "パーカー": "hoodie", "夏服ワンピース": "summer dress", "レザージャケット": "leather jacket", "カーディガン": "cardigan"}[cloth]
+        
         elif f_style == "ビジネス/フォーマル":
             cloth = st.selectbox("衣装", ["ビジネススーツ", "タキシード", "イブニングドレス", "白シャツとスラックス"])
             c_en = {"ビジネススーツ": "business suit", "タキシード": "tuxedo", "イブニングドレス": "evening gown", "白シャツとスラックス": "white shirt and slacks"}[cloth]
+        
+        elif f_style == "職種（現代・専門）": # ← 新規追加セクション
+            cloth = st.selectbox("役職/制服", ["警官", "医者", "ナース", "消防士", "弁護士", "パイロット", "ビジネスマン/ウーマン"])
+            c_en = {
+                "警官": "police officer uniform, badge, tactical vest",
+                "医者": "doctor, white lab coat, stethoscope",
+                "ナース": "nurse uniform, medical scrubs",
+                "消防士": "firefighter gear, fireproof suit, helmet",
+                "弁護士": "lawyer, professional business suit, formal attire",
+                "パイロット": "airline pilot uniform, captain's hat",
+                "ビジネスマン/ウーマン": "modern office wear, professional suit"
+            }[cloth]
+
         elif f_style == "ファンタジー/RPG職種":
-            cloth = st.selectbox("役職/装備", ["騎士の鎧", "魔術師のローブ", "聖職者の服", "忍び装束", "侍の甲冑", "盗賊の軽装"])
-            c_en = {"騎士の鎧": "knight armor", "魔術師のローブ": "wizard robes", "聖職者の服": "cleric vestments", "忍び装束": "ninja outfit", "侍の甲冑": "samurai armor", "盗賊の軽装": "thief gear"}[cloth]
+            cloth = st.selectbox("役職/装備", ["騎士の鎧", "魔術師のローブ", "聖職者の服", "忍び装束", "侍の甲冑", "盗賊の軽装", "修道女/シスター", "冒険者"])
+            c_en = {
+                "騎士の鎧": "knight armor, plate mail, engraved steel", 
+                "魔術師のローブ": "wizard robes, mystical cloak", 
+                "聖職者の服": "cleric vestments", 
+                "忍び装束": "ninja outfit", 
+                "侍の甲冑": "samurai armor", 
+                "盗賊の軽装": "thief gear",
+                "修道女/シスター": "nun habit, rosary",
+                "冒険者": "fantasy adventurer gear, leather armor"
+            }[cloth]
+            
         elif f_style == "和装":
             cloth = st.selectbox("衣装", ["着物", "浴衣", "袴", "巫女装束"])
             c_en = {"着物": "kimono", "浴衣": "yukata", "袴": "hakama", "巫女装束": "miko outfit"}[cloth]
+            
         else: # サイバーパンク
             cloth = st.selectbox("衣装", ["ネオンジャケット", "タクティカルベスト", "サイバネティックウェア"])
             c_en = {"ネオンジャケット": "neon glowing jacket", "タクティカルベスト": "tactical vest", "サイバネティックウェア": "cybernetic techwear"}[cloth]
+        
         res.append(c_en)
 
     with col2:

@@ -81,6 +81,42 @@ skin_tones = {
     "褐色": "brown skin"
 }
 
+# 国籍の定義
+nationalities = {
+    "指定なし": "",
+    "日本": "Japanese ethnicity",
+    "韓国": "Korean ethnicity",
+    "中国": "Chinese ethnicity",
+    "アメリカ": "American, western features",
+    "イギリス": "British, classic english features",
+    "フランス": "French, chic parisian style",
+    "イタリア": "Italian features",
+    "ドイツ": "German features",
+    "ロシア": "Russian, slavic features",
+    "インド": "Indian ethnicity",
+    "ブラジル": "Brazilian features",
+    "エジプト": "Egyptian features",
+    "アフリカ系": "African ethnicity",
+    "北欧": "Scandinavian, nordic features",
+    "中東": "Middle Eastern ethnicity"
+}
+
+# 役職・職業衣装の定義
+jobs = {
+    "指定なし": "",
+    "警官": "police officer uniform, badge, tactical vest",
+    "医者": "doctor, white lab coat, stethoscope",
+    "ナース": "nurse uniform, medical scrubs",
+    "消防士": "firefighter gear, fireproof suit, helmet",
+    "弁護士": "lawyer, professional business suit, formal attire",
+    "パイロット": "airline pilot uniform, captain's hat, epaulettes",
+    "シェフ": "chef's whites, toque hat, apron",
+    "ビジネスマン/ウーマン": "modern office wear, professional suit, necktie",
+    "建設作業員": "construction worker, high-visibility vest, hard hat",
+    "研究員": "scientist, lab coat, safety goggles",
+    "教師": "teacher, professional casual attire, holding a book"
+}
+
 # --- 3. サイドバー ---
 with st.sidebar:
     st.header("1. 基本選択")
@@ -89,9 +125,11 @@ with st.sidebar:
     subject = st.selectbox(subject_label, categories[category])
     
     selected_skin = "指定なし"
+    selected_nat = "指定なし" # 追加
     if category == "人間":
-        # ドロップダウン（selectbox）に変更
         selected_skin = st.selectbox("肌の色", list(skin_tones.keys()))
+        selected_nat = st.selectbox("国籍", list(nationalities.keys())) # 追加
+
 
 # --- 4. 詳細設定 ---
 st.title("🎨 AIプロンプト作成メーカー")
@@ -100,9 +138,15 @@ prompt_details = []
 history_title = subject 
 
 if category == "人間":
+    # 修正した human_module.get_human_settings を呼び出し、3つの戻り値を受け取る
     res, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
     prompt_details.extend(res)
+    
+    # 国籍や肌の色を追加（これらはサイドバーの設定を反映）
     if selected_skin != "指定なし": prompt_details.append(skin_tones[selected_skin])
+    if selected_nat != "指定なし": prompt_details.append(nationalities[selected_nat])
+    
+    # 履歴タイトルに反映（被写体 / スタイル / 具体的な衣装や職種）
     history_title = f"{subject} / {f_style} / {cloth}"
 elif category == "動物・魔物":
     res, state = animal_module.get_animal_settings(subject_to_en[subject])
@@ -143,6 +187,130 @@ if st.session_state.custom_keywords:
 # --- 6. 共通設定 ---
 st.divider()
 st.header("3. 共通設定")
+
+# 年代設定スライダーの追加
+st.subheader("🕰 時代設定")
+target_year = st.slider(
+    "西暦を選択してください（ファッションや画質に影響します）",
+    min_value=1700,
+    max_value=2026,
+    value=2000, # 基準を2000年に設定
+    step=1
+)
+
+# 年代に応じたプロンプトの自動生成
+if target_year < 1850:
+    era_prompt = f"historical scene from {target_year}, oil painting style, traditional aesthetic"
+elif target_year < 1900:
+    era_prompt = f"year {target_year}, victorian era style, early photography"
+elif target_year < 1950:
+    era_prompt = f"year {target_year}, vintage style, old film grain"
+elif target_year < 2000:
+    era_prompt = f"year {target_year}, retro aesthetic, late 20th century style"
+else:
+    era_prompt = f"year {target_year}, modern contemporary style, high-tech"
+
+prompt_details.append(era_prompt)
+
+# --- フィルタ・特殊効果セクション ---
+st.subheader("🎬 フィルタ・特殊効果")
+
+# フィルタ名とプロンプトの対応辞書
+effect_dict = {
+    "モノクロ": "monochrome, black and white",
+    "モノクロマティック": "monochromatic color scheme",
+    "モーションブラー": "motion blur, speed lines",
+    "シャープネス": "sharp focus, hyper detailed edges",
+    "グリッチエフェクト": "glitch effect, digital distortion",
+    "グリッチノイズ": "glitch noise, VHS static, chromatic aberration",
+    "フレアレンズ": "lens flare, cinematic lighting",
+    "バーニング": "burning effect, fire embers, scorched edges",
+    "ダストエフェクト": "dust particles, floating dust, film grain",
+    "重ね撮り": "double exposure, layered imagery",
+    "VFX": "VFX, cinematic post-processing",
+    "SFX": "SFX, special effects, practical effects aesthetic"
+}
+
+# 複数選択可能なセレクトボックス
+selected_effects = st.multiselect(
+    "適用したいフィルタを選択してください（複数選択可）",
+    options=list(effect_dict.keys()),
+    default=[] # 基本は何もかかっていない状態
+)
+
+# 選択されたエフェクトをプロンプトに追加
+for effect in selected_effects:
+    prompt_details.append(effect_dict[effect])
+
+# --- ライティング設定セクション ---
+st.subheader("💡 ライティング（照明）")
+
+# ライティング名とプロンプトの対応辞書
+lighting_dict = {
+    "輝く光": "glowing light, radiant lighting",
+    "ぼかし光": "soft bokeh lighting, blurred light",
+    "バックライト": "backlighting, silhouette lighting",
+    "下からの光": "bottom lighting, mysterious under-lighting",
+    "横からの光": "side lighting, dramatic shadows",
+    "発光": "bioluminescence, internal glow",
+    "スポットライト": "spotlight, focused beam",
+    "ステージライト": "stage lighting, concert lights",
+    "スタジオの照明": "studio lighting, professional photography lighting",
+    "一方向の光": "directional lighting, hard shadows",
+    "ドラマチックな光": "dramatic lighting, high contrast lighting",
+    "映画的な光": "cinematic lighting, movie set aesthetic",
+    "ボリュームのある光": "volumetric lighting, god rays, sunbeams",
+    "カラフルな光": "colorful lighting, RGB lights, neon glow",
+    "リムライト": "rim lighting, edge lighting",
+    "実用的な照明": "practical lighting, realistic indoor lights",
+    "暖かい光": "warm lighting, golden hour, 3000k",
+    "冷たい光": "cool lighting, blue hour, 8000k",
+    "柔らかい光": "soft lighting, diffused light",
+    "強い光": "harsh lighting, intense light source",
+    "周囲の光": "ambient lighting, global illumination",
+    "最適な光": "optimal lighting, perfectly balanced light",
+    "ダイナミックな光": "dynamic lighting, shifting light and shadow"
+}
+
+# 複数選択可能なセレクトボックス
+selected_lighting = st.multiselect(
+    "適用したいライティングを選択してください（複数選択可）",
+    options=list(lighting_dict.keys()),
+    default=[] # 基本は何もかかっていない状態
+)
+
+# 選択されたライティングをプロンプトに追加
+for light in selected_lighting:
+    prompt_details.append(lighting_dict[light])
+
+
+# --- レンズ設定セクション ---
+st.subheader("📷 レンズの種類")
+
+# レンズ名とプロンプトの対応辞書
+lens_dict = {
+    "魚眼レンズ": "fisheye lens, ultra-wide circular distortion, spherical perspective",
+    "広角レンズ": "wide angle lens, expansive view, 14mm, deep depth of field",
+    "マクロレンズ": "macro lens, extreme close-up, microscopic detail, shallow depth of field",
+    "望遠レンズ": "telephoto lens, compressed perspective, 200mm, beautiful background blur",
+    "チルトシフトレンズ": "tilt-shift lens, miniature effect, selective focus, toy-like appearance"
+}
+
+# 1つだけ選択するセレクトボックス
+selected_lens = st.selectbox(
+    "使用するレンズを選択してください",
+    options=["指定なし"] + list(lens_dict.keys()),
+    index=0
+)
+
+# 選択されたレンズをプロンプトに追加
+if selected_lens != "指定なし":
+    prompt_details.append(lens_dict[selected_lens])
+
+
+
+c1, c2, c3 = st.columns(3)
+# ... (以前のコード)
 c1, c2, c3 = st.columns(3)
 with c1:
     bg_choice = st.radio("背景タイプ", ["風景（天候）", "単色背景", "背景透過用"])
@@ -170,8 +338,34 @@ with c2:
     if aspect_ratio != "指定なし": prompt_details.append(ar_dict[aspect_ratio])
 
 with c3:
-    style = st.selectbox("画風", ["アニメ風", "実写", "3D", "ピクセルアート", "水彩画"])
-    st_dict = {"アニメ風": "anime style", "実写": "photorealistic", "3D": "3D render", "ピクセルアート": "pixel art", "水彩画": "watercolor style"}
+    # 選択肢に「油絵」を追加
+    style_label = [
+        "日本風アニメ", "ちびキャラ", "漫画", "カートゥーン", "実写", 
+        "3Dモデル(フィギュア風)", "3Dジオラマ", "粘土アニメ", "Zbrush", 
+        "ホログラフィック", "Blender Render", "トゥーンレンダリング",
+        "ピクセルアート", "水彩画", "油絵"  # 追加
+    ]
+    style = st.selectbox("画風", style_label)
+    
+    # 辞書に油絵のプロンプトを定義
+    st_dict = {
+        "日本風アニメ": "japanese cel anime style, high quality cel shading",
+        "ちびキャラ": "chibi style, super deformed, cute small character",
+        "漫画": "manga style, monochrome, screen tone, high contrast",
+        "カートゥーン": "western cartoon style, vibrant colors, bold outlines",
+        "実写": "photorealistic, 8k uhd, highly detailed, raw photo",
+        "3Dモデル(フィギュア風)": "3D model, character figure, high quality resin, smooth surface, soft lighting",
+        "3Dジオラマ": "miniature diorama style, tilt-shift photography, tiny detailed world, isometric view",
+        "粘土アニメ": "claymation style, clay textures, stop-motion aesthetic, handmade look, Aardman style",
+        "Zbrush": "Zbrush sculpt, highly detailed organic modeling, clay render, digital sculpting masterpiece",
+        "ホログラフィック": "holographic display, glowing translucent blue, digital glitch, futuristic HUD, laser projection",
+        "Blender Render": "rendered in Blender, Cycles render, high quality PBR materials, global illumination",
+        "トゥーンレンダリング": "3D toon shaded, cel-shaded 3D, anime style 3D, Arcane style, thick strokes",
+        "ピクセルアート": "pixel art, 8-bit style, retro gaming aesthetic",
+        "水彩画": "watercolor painting, soft brush strokes, artistic texture",
+        "油絵": "oil painting style, heavy impasto, canvas texture, visible brushstrokes, classical masterpiece aesthetic" # 追加
+    }
+    
     prompt_details.append(st_dict[style])
     picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 
