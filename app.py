@@ -371,48 +371,78 @@ with c3:
 
 # --- 6.5 追加オプション ---
 st.subheader("💡 出力オプション")
-# チェックボックスを配置
-idea_mode = st.checkbox("4分割アイデアモード（番号付きで4案出力する指示を追加）")
+col_opt1, col_opt2 = st.columns(2)
+
+with col_opt1:
+    idea_mode = st.checkbox("4分割アイデアモード（番号付き4案）")
+
+with col_opt2:
+    use_negative = st.checkbox("ネガティブプロンプトを適用")
+
+# ネガティブプロンプトの詳細設定
+negative_content = ""
+if use_negative:
+    # 選択肢を日本語に変更
+    neg_options = {
+        "低品質": "low quality, worst quality, lowres",
+        "解剖学的異常（手足の崩れ）": "bad anatomy, missing fingers, extra digit, fewer digits",
+        "文字・ロゴの混入": "text, letter, signature, watermark, username",
+        "ぼやけ・ノイズ": "blurry, error, cropped, jpeg artifacts",
+        "不自然な顔": "deformed face, disfigured, mutated"
+    }
+    
+    selected_neg_labels = st.multiselect(
+        "除外したい要素を選択（日本語）",
+        options=list(neg_options.keys()),
+        default=["低品質", "文字・ロゴの混入"]
+    )
+    
+    # 自由入力欄（日本語で入力）
+    custom_neg_ja = st.text_input("追加の除外ワード（日本語でOK：例：ヘルメット、赤い服）", "")
+    
+    # ネガティブプロンプトの組み立て
+    neg_prompts = [neg_options[label] for label in selected_neg_labels]
+    
+    # 日本語入力があった場合、DeepL/Google翻訳等の代わりに簡易翻訳ロジック（あるいは既存の翻訳関数）を通す
+    if custom_neg_ja:
+        # ここでは以前作成した自動翻訳ロジック（もしあれば）を利用するか、
+        # シンプルにカスタムキーワードと同様の仕組みで英語に変換する想定です
+        custom_neg_en = custom_to_en(custom_neg_ja) # 翻訳関数を呼び出し
+        neg_prompts.append(custom_neg_en)
+    
+    full_neg = ", ".join(neg_prompts)
+    negative_content = f" [Negative Prompt: {full_neg}]"
 
 # --- 7. 生成ボタン ---
 st.divider()
-# ボタンが押された時の処理をここから記述
 if st.button("✨ プロンプト生成", type="primary", use_container_width=True):
-    # プロンプトの組み立て開始
     final_prompt_list = prompt_details.copy()
     
-    # 1. アイデアモードがONの場合の処理
+    # 4分割モード
     if idea_mode:
         final_prompt_list.append("split into 4 separate views, quadrant layout, numbered 1 2 3 4 on each frame, 4 different design concepts")
     
-    # 2. 自由入力キーワードの合流
+    # 通常のカスタムキーワード（日本語→英語）
     if "custom_keywords" in st.session_state and st.session_state.custom_keywords:
         final_prompt_list.extend(st.session_state.custom_keywords)
         
-    # 3. 共通の品質タグなどを追加
     final_prompt_list.append(f"color theme {picked_color}")
     final_prompt_list.append("masterpiece, best quality, highly detailed")
     
-    # 4. 文字列に結合
-    full_prompt = ", ".join(final_prompt_list)
+    # メインとネガティブを合体
+    full_prompt = ", ".join(final_prompt_list) + negative_content
     
-    # --- 履歴保存処理 ---
+    # 履歴保存
     new_entry = pd.DataFrame([{
         "日付": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
         "タイトル": history_title,
         "プロンプト": full_prompt
     }])
-    
-    # 履歴データの型チェックと結合
-    if not isinstance(st.session_state.history, pd.DataFrame):
-        st.session_state.history = pd.DataFrame(columns=["日付", "タイトル", "プロンプト"])
-        
     st.session_state.history = pd.concat([new_entry, st.session_state.history], ignore_index=True)
     
-    # --- 画面への出力表示 ---
-    st.balloons() # お祝いの風船
+    st.balloons()
     st.success("プロンプトを生成しました！")
-    st.code(full_prompt) # 生成されたプロンプトをコピー可能にする
+    st.code(full_prompt)
 
 # --- 8. 履歴表示・お気に入り・CSV書き出し ---
 st.divider()
