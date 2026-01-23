@@ -8,6 +8,14 @@ import animal_module
 import landscape_module
 import logo_module
 
+def custom_to_en(text_ja):
+    # ここに実際の翻訳処理が入っているか確認
+    # もし単に 'return text_ja' となっていると、日本語のまま返ってしまいます
+    from deep_translator import GoogleTranslator
+    translated = GoogleTranslator(source='ja', target='en').translate(text_ja)
+    return translated
+
+
 # ページ設定
 st.set_page_config(page_title="プロンプト作成メーカー", layout="wide")
 
@@ -379,10 +387,13 @@ with col_opt1:
 with col_opt2:
     use_negative = st.checkbox("ネガティブプロンプトを適用")
 
-# ネガティブプロンプトの詳細設定
+# セッション状態の初期化
+if "neg_custom_keywords" not in st.session_state:
+    st.session_state.neg_custom_keywords = []
+
 negative_content = ""
 if use_negative:
-    # 選択肢を日本語に変更
+    # 1. プリセット
     neg_options = {
         "低品質": "low quality, worst quality, lowres",
         "解剖学的異常（手足の崩れ）": "bad anatomy, missing fingers, extra digit, fewer digits",
@@ -390,28 +401,52 @@ if use_negative:
         "ぼやけ・ノイズ": "blurry, error, cropped, jpeg artifacts",
         "不自然な顔": "deformed face, disfigured, mutated"
     }
-    
     selected_neg_labels = st.multiselect(
         "除外したい要素を選択（日本語）",
         options=list(neg_options.keys()),
         default=["低品質", "文字・ロゴの混入"]
     )
     
-    # 自由入力欄（日本語で入力）
-    custom_neg_ja = st.text_input("追加の除外ワード（日本語でOK：例：ヘルメット、赤い服）", "")
+    # 2. 自由入力欄
+    st.write("追加の除外ワード（個別入力 例：メガネ、帽子、背景の建物）")
+    neg_col_in, neg_col_btn = st.columns([0.7, 0.3])
     
-    # ネガティブプロンプトの組み立て
-    neg_prompts = [neg_options[label] for label in selected_neg_labels]
+    with neg_col_in:
+        neg_input_ja = st.text_input("日本語で入力してください", key="neg_input_field", label_visibility="collapsed")
     
-    # 日本語入力があった場合、DeepL/Google翻訳等の代わりに簡易翻訳ロジック（あるいは既存の翻訳関数）を通す
-    if custom_neg_ja:
-        # ここでは以前作成した自動翻訳ロジック（もしあれば）を利用するか、
-        # シンプルにカスタムキーワードと同様の仕組みで英語に変換する想定です
-        custom_neg_en = custom_to_en(custom_neg_ja) # 翻訳関数を呼び出し
-        neg_prompts.append(custom_neg_en)
+    with neg_col_btn:
+        if st.button("翻訳して追加", key="neg_add_btn", use_container_width=True):
+            if neg_input_ja:
+                # --- 翻訳ロジックを直接実行 ---
+                try:
+                    # ポジティブ側で使っている翻訳関数を呼び出す
+                    # もし関数名が違う場合はここを修正してください
+                    neg_en = custom_to_en(neg_input_ja)
+                    
+                    # 確実に英語（翻訳後）を保存する
+                    if neg_en and neg_en not in st.session_state.neg_custom_keywords:
+                        st.session_state.neg_custom_keywords.append(neg_en)
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"翻訳エラー: {e}")
+
+    # 3. 英語（翻訳後）でキーワードを表示
+    if st.session_state.neg_custom_keywords:
+        st.write("現在ストックされている除外キーワード（英語）:")
+        cols_neg = st.columns(4)
+        for idx, kw in enumerate(st.session_state.neg_custom_keywords):
+            # kw が英語になっていることを確認して表示
+            if cols_neg[idx % 4].button(f"❌ {kw}", key=f"remove_neg_{idx}"):
+                st.session_state.neg_custom_keywords.remove(kw)
+                st.rerun()
+
+    # --- ネガティブプロンプト全体の組み立て ---
+    final_neg_list = [neg_options[label] for label in selected_neg_labels]
+    final_neg_list.extend(st.session_state.neg_custom_keywords)
     
-    full_neg = ", ".join(neg_prompts)
-    negative_content = f" [Negative Prompt: {full_neg}]"
+    if final_neg_list:
+        negative_content = f" [Negative Prompt: {', '.join(final_neg_list)}]"
+
 
 # --- 7. 生成ボタン ---
 st.divider()
