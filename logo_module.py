@@ -2,18 +2,96 @@ import streamlit as st
 
 def get_logo_settings(subject_en):
     st.subheader("🔡 遊技機風ロゴデザイン詳細")
-    text = st.text_input("ロゴに入れたいテキスト", "ADVENTURE")
+    
+    # 1. テキスト入力
+    # 説明文を変更：スペースではなくスラッシュでの区切りを案内
+    text_input = st.text_input("ロゴに入れたいテキスト（改行したい場所に / を入力）", "ADVENTURE/world")
+    
+    # --- 複数行レイアウトの切り替え ---
+    # ラベルを変更
+    is_stacked = st.checkbox("記号「/」で区切って改行・積み重ね配置にする (Stacked Layout)")
+    
+    # 2. 詳細設定（並び方向・文字のまとまり）
+    col_txt1, col_txt2 = st.columns(2)
+    
+    with col_txt1:
+        direction = st.radio(
+            "文字の並び方向", 
+            ["横並び (Horizontal)", "縦並び (Vertical)"],
+            index=0,
+            help="通常は横並び推奨。縦書き看板などの場合に縦並びを選択。"
+        )
+    
+    with col_txt2:
+        composition = st.radio(
+            "文字のまとまり", 
+            ["一列・塊で配置 (Grouped)", "一文字ずつ分離・散らす (Split/Scattered)"],
+            index=0
+        )
+
+    # --- プロンプト構築ロジック ---
+    res = []
+    
+    # A. テキストの処理（スラッシュ区切りで2行積み重ね vs 1行）
+    if is_stacked and "/" in text_input:
+        # スラッシュで分割
+        parts = text_input.split("/")
+        # 空白文字の前後の余分なスペースは除去しつつ、中身のスペースは保持
+        parts = [p.strip() for p in parts if p.strip()] 
+        
+        if len(parts) >= 2:
+            # 例: text logo containing "THE WORLD" and "OF MAGIC"
+            text_content = " and ".join([f'"{p}"' for p in parts])
+            res.append(f'text logo containing {text_content}')
+            
+            # 積み重ねの指示
+            res.append(f"{len(parts)} lines stacked text layout")
+            res.append("text written above text")
+            res.append("balanced typography composition")
+        else:
+            # スラッシュがあっても実質1行だった場合
+            res.append(f'"{text_input.replace("/", "")}" text logo')
+    else:
+        # 積み重ねない場合（1行）またはスラッシュがない場合
+        # スラッシュがもし残っていたら削除して表示
+        clean_text = text_input.replace("/", "")
+        
+        # 文字の分離設定を確認
+        final_text_str = clean_text
+        if "分離" in composition:
+            # 分離の場合はスペースを空けて個別の文字として認識させる
+            # "THE WORLD" -> "T H E   W O R L D" のようにする処理
+            # 文字列を一文字ずつリスト化し、結合
+            final_text_str = " ".join(list(clean_text))
+            res.append("separated individual letters, deconstructed typography, floating characters")
+        else:
+            res.append("contiguous text, single word logo, tight kerning")
+            
+        res.append(f'"{final_text_str}" text logo')
+
+    res.append(subject_en)
+
+    # B. 並び方向の指定
+    if "縦並び" in direction:
+        res.append("vertical text layout, vertically stacked letters, top-to-bottom flow")
+    else:
+        res.append("horizontal reading direction")
+        if not is_stacked:
+            res.append("centered composition")
+
+    # -------------------------------------------------
+    # 以下、既存の装飾設定
+    # -------------------------------------------------
     
     col1, col2 = st.columns(2)
-    res = [f'"{text}" text logo', subject_en, "centered composition"]
     
-    # 変数の初期化（エラー防止）
+    # 変数の初期化
     shape_label = "指定なし"
     material_label = "指定なし"
     world_label = "指定なし"
 
     with col1:
-        # 1. 形状・構成
+        # 1. 形状・立体感
         shape_label = st.selectbox("形状・立体感", [
             "指定なし", "3D飛び出し効果", "太い面取り", "多層構造", "動的なパース", "放射線状の広がり"
         ])
@@ -74,7 +152,7 @@ def get_logo_settings(subject_en):
         }
         res.append(q_dict[quality])
 
-        # --- ここに追加：中央を尖らせるオプション ---
+        # --- 中央を尖らせるオプション ---
         st.write("---")
         is_sharp = st.checkbox("中央を鋭利にとがらせる (Sharp Center)")
         if is_sharp:
@@ -84,5 +162,4 @@ def get_logo_settings(subject_en):
     # 共通のベース呪文
     res.append("Pachinko style logo style, masterpiece, best quality")
     
-    # 重要：app.pyが期待する5つの戻り値を確実に返す
-    return res, text, shape_label, world_label, material_label
+    return res, text_input, shape_label, world_label, material_label
