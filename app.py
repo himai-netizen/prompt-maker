@@ -156,34 +156,115 @@ with st.sidebar:
 # --- 4. 詳細設定 ---
 st.title("🎨 AIプロンプト作成メーカー")
 st.header(f"2. {category}の詳細設定")
+
+# タブの作成
+tab1, tab2 = st.tabs(["⚙️ 詳細カスタマイズ", "🏷️ クイックタグ・パレット"])
+
 prompt_details = []
 history_title = subject 
 
-if category == "人間":
-    # 修正した human_module.get_human_settings を呼び出し、3つの戻り値を受け取る
-    res, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
-    prompt_details.extend(res)
+with tab1:
+    if category == "人間":
+        # 戻り値の数に合わせて受け取りを修正（res, age, f_style, cloth）
+        res, age, f_style, cloth = human_module.get_human_settings(subject_to_en[subject])
+        prompt_details.extend(res)
+        
+        # 国籍・肌の色・体型を追加（サイドバーの設定を反映）
+        if selected_skin != "指定なし": prompt_details.append(skin_tones[selected_skin])
+        if selected_nat != "指定なし": prompt_details.append(nationalities[selected_nat])
+        if selected_body != "指定なし": prompt_details.append(body_types[selected_body])  
+      
+        # 履歴タイトルに反映
+        history_title = f"{subject} / {f_style} / {cloth}"
     
-    # 国籍や肌の色を追加（これらはサイドバーの設定を反映）
-    if selected_skin != "指定なし": prompt_details.append(skin_tones[selected_skin])
-    if selected_nat != "指定なし": prompt_details.append(nationalities[selected_nat])
-    if selected_body != "指定なし": prompt_details.append(body_types[selected_body])  
-  
-    # 履歴タイトルに反映（被写体 / スタイル / 具体的な衣装や職種）
-    history_title = f"{subject} / {f_style} / {cloth}"
-elif category == "動物・魔物":
-    res, state = animal_module.get_animal_settings(subject_to_en[subject])
-    prompt_details.extend(res)
-    history_title = f"{subject} ({state})"
-elif category == "風景・環境":
-    res, vibe = landscape_module.get_landscape_settings(subject_to_en[subject])
-    prompt_details.extend(res)
-    history_title = f"{subject} ({vibe})"
-elif category == "タイトルロゴ":
-    res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
-    prompt_details.extend(res)
-    history_title = f"Logo: {text} / {shape} / {world} / {material}"
+    elif category == "動物・魔物":
+        res, state = animal_module.get_animal_settings(subject_to_en[subject])
+        prompt_details.extend(res)
+        history_title = f"{subject} ({state})"
+    
+    elif category == "風景・環境":
+        res, vibe = landscape_module.get_landscape_settings(subject_to_en[subject])
+        prompt_details.extend(res)
+        history_title = f"{subject} ({vibe})"
+    
+    elif category == "タイトルロゴ":
+        res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
+        prompt_details.extend(res)
+        history_title = f"Logo: {text} / {shape} / {world} / {material}"
 
+with tab2:
+# --- タグの一括削除ボタンを追加 ---
+    if st.session_state.custom_keywords:
+        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True):
+            st.session_state.custom_keywords = []
+            st.toast("タグをすべて削除しました")
+            st.rerun()
+        st.divider()
+    
+    st.info("使いたい雰囲気（タグ）をクリックすると、自動で英語に変換してカスタムキーワードに追加されます。")
+    
+    # クイックタグの定義（表示名: 英語プロンプト）
+    tag_categories = {
+        "💡 演出・光の魔法": {
+            "映画のような照明": "Cinematic Lighting",
+            "天使の梯子": "God rays",
+            "ネオンの輝き": "Neon glow",
+            "夕暮れの黄金色": "Golden hour",
+            "逆光": "Backlighting",
+            "柔らかい光": "Soft lighting",
+            "ドラマチックな影": "Dramatic shadows",
+            "幻想的な光の粒": "Magical sparkling bokeh"
+        },
+        "💎 圧倒的な画質": {
+            "最高傑作": "Masterpiece",
+            "超詳細な描き込み": "Highly detailed, Intricate details",
+            "実写のような": "Photorealistic",
+            "UE5レンダリング": "Unreal Engine 5 render",
+            "8k解像度": "8k resolution",
+            "3Dフィギュア風": "Octane render",
+            "繊細な質感": "Sharp focus, hyper-realistic texture"
+        },
+        "🎭 世界観・ムード": {
+            "神秘的・優美": "Ethereal, Mystical",
+            "ダークファンタジー": "Dark fantasy, Gothic atmosphere",
+            "サイバーパンク": "Cyberpunk, Futuristic neon",
+            "レトロ写真風": "Vintage photography style",
+            "夢幻的・淡い": "Dreamy, Pastel colors",
+            "終末世界": "Post-apocalyptic, Desolate",
+            "スチームパンク": "Steampunk, Brass and Steam",
+            "鮮やかな色彩": "Vibrant colors, High saturation"
+        },
+        "📸 構図・カメラ": {
+            "躍動感のある構図": "Dynamic angle",
+            "アップ（顔寄り）": "Close-up shot",
+            "全身ショット": "Full body shot",
+            "ローアングル": "Low angle, Heroic perspective",
+            "俯瞰（上から）": "Bird's eye view",
+            "左右対称": "Symmetrical composition",
+            "広角レンズ": "Wide angle shot"
+        },
+        "✨ 特殊エフェクト": {
+            "キラキラ・粒子": "Shimmering particles",
+            "水しぶき": "Water splashes",
+            "燃え盛る炎": "Swirling flames",
+            "花吹雪": "Falling flower petals",
+            "デジタルノイズ": "Glitch effect",
+            "浮遊感": "Floating object, Zero gravity"
+        }
+    }
+
+    # カテゴリごとにボタンを配置
+    for cat_name, tags_dict in tag_categories.items():
+        st.write(f"**{cat_name}**")
+        # 5列に増やして、より多くのタグを並べやすくします
+        cols = st.columns(5) 
+        for i, (label_ja, tag_en) in enumerate(tags_dict.items()):
+            if cols[i % 5].button(label_ja, key=f"quick_{tag_en}"):
+                # セッション状態のカスタムキーワードリストに追加（英語の方を入れる）
+                if tag_en not in st.session_state.custom_keywords:
+                    st.session_state.custom_keywords.append(tag_en)
+                    st.toast(f"追加: {label_ja} ({tag_en})")
+                    st.rerun()
 # --- 5. 自由入力・翻訳セクション ---
 st.divider()
 st.header("追加カスタムキーワード")

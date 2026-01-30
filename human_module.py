@@ -74,4 +74,4 @@ def get_human_settings(subject_en):
         pose = st.selectbox("ポーズ", ["立ち姿", "座る", "歩く", "戦う構え", "祈る", "自撮り", "振り返る", "しゃがむ", "腕を組む"])
         res.append({"立ち姿": "standing straight", "座る": "sitting", "歩く": "walking", "戦う構え": "fighting stance", "祈る": "praying", "自撮り": "selfie pose", "振り返る": "looking back", "しゃがむ": "squatting", "腕を組む": "arms crossed"}[pose])
 
-    return res, f_style, cloth
+    return res, age, f_style, cloth
