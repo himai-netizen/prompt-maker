@@ -109,6 +109,20 @@ nationalities = {
     "中東": "Middle Eastern ethnicity"
 }
 
+# 体型の定義
+body_types = {
+   "指定なし": "",
+   "スリム": "slender, slim build",
+   "痩せ型": "thin, skinny",
+   "アスリート": "athletic, toned body",
+   "筋肉質": "muscular, ripped physique",
+   "ふくよか": "plump, curvy figure",
+   "がっしり": "sturdy, thick build",
+   "モデル体型": "tall, lean model proportions"
+}
+
+
+
 # 役職・職業衣装の定義
 jobs = {
     "指定なし": "",
@@ -137,7 +151,7 @@ with st.sidebar:
     if category == "人間":
         selected_skin = st.selectbox("肌の色", list(skin_tones.keys()))
         selected_nat = st.selectbox("国籍", list(nationalities.keys())) # 追加
-
+        selected_body = st.selectbox("体型", list(body_types.keys())) # 追加
 
 # --- 4. 詳細設定 ---
 st.title("🎨 AIプロンプト作成メーカー")
@@ -153,7 +167,8 @@ if category == "人間":
     # 国籍や肌の色を追加（これらはサイドバーの設定を反映）
     if selected_skin != "指定なし": prompt_details.append(skin_tones[selected_skin])
     if selected_nat != "指定なし": prompt_details.append(nationalities[selected_nat])
-    
+    if selected_body != "指定なし": prompt_details.append(body_types[selected_body])  
+  
     # 履歴タイトルに反映（被写体 / スタイル / 具体的な衣装や職種）
     history_title = f"{subject} / {f_style} / {cloth}"
 elif category == "動物・魔物":

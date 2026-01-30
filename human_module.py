@@ -13,47 +13,56 @@ def get_human_settings(subject_en):
         )
         
         if f_style == "現代カジュアル":
-            cloth = st.selectbox("衣装", ["Tシャツとジーンズ", "パーカー", "夏服ワンピース", "レザージャケット", "カーディガン"])
-            c_en = {"Tシャツとジーンズ": "t-shirt and blue jeans", "パーカー": "hoodie", "夏服ワンピース": "summer dress", "レザージャケット": "leather jacket", "カーディガン": "cardigan"}[cloth]
+            cloth = st.selectbox("衣装", ["指定なし", "Tシャツとジーンズ", "パーカー", "夏服ワンピース", "レザージャケット", "カーディガン"])
+            c_en_dict = {"指定なし": "", "Tシャツとジーンズ": "t-shirt and blue jeans", "パーカー": "hoodie", "夏服ワンピース": "summer dress", "レザージャケット": "leather jacket", "カーディガン": "cardigan"}
+            c_en = c_en_dict[cloth]
         
         elif f_style == "ビジネス/フォーマル":
-            cloth = st.selectbox("衣装", ["ビジネススーツ", "タキシード", "イブニングドレス", "白シャツとスラックス"])
-            c_en = {"ビジネススーツ": "business suit", "タキシード": "tuxedo", "イブニングドレス": "evening gown", "白シャツとスラックス": "white shirt and slacks"}[cloth]
+            cloth = st.selectbox("衣装", ["指定なし", "ビジネススーツ", "タキシード", "イブニングドレス", "白シャツとスラックス"])
+            c_en_dict = {"指定なし": "", "ビジネススーツ": "business suit", "タキシード": "tuxedo", "イブニングドレス": "evening gown", "白シャツとスラックス": "white shirt and slacks"}
+            c_en = c_en_dict[cloth]
         
         elif f_style == "職種（現代・専門）": # ← 新規追加セクション
-            cloth = st.selectbox("役職/制服", ["警官", "医者", "ナース", "消防士", "弁護士", "パイロット", "ビジネスマン/ウーマン"])
-            c_en = {
-                "警官": "police officer uniform, badge, tactical vest",
-                "医者": "doctor, white lab coat, stethoscope",
-                "ナース": "nurse uniform, medical scrubs",
-                "消防士": "firefighter gear, fireproof suit, helmet",
-                "弁護士": "lawyer, professional business suit, formal attire",
-                "パイロット": "airline pilot uniform, captain's hat",
-                "ビジネスマン/ウーマン": "modern office wear, professional suit"
-            }[cloth]
+            cloth = st.selectbox("役職/制服", ["指定なし", "警官", "医者", "ナース", "消防士", "弁護士", "パイロット", "ビジネスマン/ウーマン"])
+            c_en_dict = {
+                "指定なし": "",
+                 "警官": "police officer uniform, badge, tactical vest",
+                 "医者": "doctor, white lab coat, stethoscope",
+                 "ナース": "nurse uniform, medical scrubs",
+                 "消防士": "firefighter gear, fireproof suit, helmet",
+                 "弁護士": "lawyer, professional business suit, formal attire",
+                 "パイロット": "airline pilot uniform, captain's hat",
+                 "ビジネスマン/ウーマン": "modern office wear, professional suit"
+            }
+            c_en = c_en_dict[cloth]
 
         elif f_style == "ファンタジー/RPG職種":
-            cloth = st.selectbox("役職/装備", ["騎士の鎧", "魔術師のローブ", "聖職者の服", "忍び装束", "侍の甲冑", "盗賊の軽装", "修道女/シスター", "冒険者"])
-            c_en = {
-                "騎士の鎧": "knight armor, plate mail, engraved steel", 
-                "魔術師のローブ": "wizard robes, mystical cloak", 
-                "聖職者の服": "cleric vestments", 
-                "忍び装束": "ninja outfit", 
-                "侍の甲冑": "samurai armor", 
-                "盗賊の軽装": "thief gear",
-                "修道女/シスター": "nun habit, rosary",
-                "冒険者": "fantasy adventurer gear, leather armor"
-            }[cloth]
+            cloth = st.selectbox("役職/装備", ["指定なし", "騎士の鎧", "魔術師のローブ", "聖職者の服", "忍び装束", "侍の甲冑", "盗賊の軽装", "修道女/シスター", "冒険者"])
+            c_en_dict = {
+                "指定なし": "",
+                 "騎士の鎧": "knight armor, plate mail, engraved steel", 
+                 "魔術師のローブ": "wizard robes, mystical cloak", 
+                 "聖職者の服": "cleric vestments", 
+                 "忍び装束": "ninja outfit", 
+                 "侍の甲冑": "samurai armor", 
+                 "盗賊の軽装": "thief gear",
+                 "修道女/シスター": "nun habit, rosary",
+                 "冒険者": "fantasy adventurer gear, leather armor"
+            }
+            c_en = c_en_dict[cloth]
             
         elif f_style == "和装":
-            cloth = st.selectbox("衣装", ["着物", "浴衣", "袴", "巫女装束"])
-            c_en = {"着物": "kimono", "浴衣": "yukata", "袴": "hakama", "巫女装束": "miko outfit"}[cloth]
+            cloth = st.selectbox("衣装", ["指定なし", "着物", "浴衣", "袴", "巫女装束"])
+            c_en_dict = {"指定なし": "", "着物": "kimono", "浴衣": "yukata", "袴": "hakama", "巫女装束": "miko outfit"}
+            c_en = c_en_dict[cloth]
             
         else: # サイバーパンク
-            cloth = st.selectbox("衣装", ["ネオンジャケット", "タクティカルベスト", "サイバネティックウェア"])
-            c_en = {"ネオンジャケット": "neon glowing jacket", "タクティカルベスト": "tactical vest", "サイバネティックウェア": "cybernetic techwear"}[cloth]
+            cloth = st.selectbox("衣装", ["指定なし", "ネオンジャケット", "タクティカルベスト", "サイバネティックウェア"])
+            c_en_dict = {"指定なし": "", "ネオンジャケット": "neon glowing jacket", "タクティカルベスト": "tactical vest", "サイバネティックウェア": "cybernetic techwear"}
+            c_en = c_en_dict[cloth]
         
-        res.append(c_en)
+        if c_en:
+            res.append(c_en)
 
     with col2:
         status = st.selectbox("衣装の状態", ["新品同様", "着古した", "汚れた", "ボロボロ", "血に染まった"])
