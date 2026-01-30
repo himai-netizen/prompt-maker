@@ -7,6 +7,7 @@ import human_module
 import animal_module
 import landscape_module
 import logo_module
+import frame_module  # 追加
 
 def custom_to_en(text_ja):
     # ここに実際の翻訳処理が入っているか確認
@@ -67,7 +68,8 @@ categories = {
     "人間": ["女性", "男性"],
     "動物・魔物": ["猫", "犬", "馬", "虎", "ライオン", "鷲", "龍", "狼", "グリフォン"],
     "風景・環境": ["山", "海", "森", "滝", "空", "崖", "ビル群", "宇宙", "砂漠", "洞窟", "浮遊島"],
-    "タイトルロゴ": ["ファンタジーロゴ", "SFロゴ", "ホラーロゴ", "企業ロゴ", "ヴィンテージロゴ"]
+    "タイトルロゴ": ["ファンタジーロゴ", "SFロゴ", "ホラーロゴ", "企業ロゴ", "ヴィンテージロゴ"],
+    "フレームデザイン": ["額縁", "カード枠", "ウィンドウ"] 
 }
 
 subject_to_en = {
@@ -191,6 +193,12 @@ with tab1:
         res, text, shape, world, material = logo_module.get_logo_settings(subject_to_en[subject])
         prompt_details.extend(res)
         history_title = f"Logo: {text} / {shape} / {world} / {material}"
+
+    elif category == "フレームデザイン":
+    # texture を追加して4つの戻り値を受け取るように修正
+        res, ratio, style, texture = frame_module.get_frame_settings()
+        prompt_details.extend(res)
+        history_title = f"Frame: {ratio} / {style} / {texture}"
 
 with tab2:
 # --- タグの一括削除ボタンを追加 ---
