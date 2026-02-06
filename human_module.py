@@ -68,10 +68,65 @@ def get_human_settings(subject_en):
         status = st.selectbox("衣装の状態", ["新品同様", "着古した", "汚れた", "ボロボロ", "血に染まった"])
         res.append({"新品同様": "brand new, clean", "着古した": "worn-in", "汚れた": "dirty", "ボロボロ": "tattered, weathered", "血に染まった": "blood-stained"}[status])
         
-        face = st.selectbox("表情", ["微笑み", "満面の笑み", "キリッとした顔", "不敵な笑み", "叫び", "泣き顔", "驚き", "恥じらい", "無表情"])
-        res.append({"微笑み": "gentle smile", "満面の笑み": "big happy smile", "キリッとした顔": "determined face", "不敵な笑み": "smirk", "叫び": "shouting", "泣き顔": "crying", "驚き": "surprised", "恥じらい": "blushing", "無表情": "expressionless"}[face])
+        # 髪質 - 新規追加
+        hair_texture = st.selectbox("髪質", ["指定なし", "ストレート", "ウェーブ", "巻き髪", "サラサラ", "つやつや", "濡れ髪", "ボサボサ", "剛毛", "猫っ毛"])
+        ht_en_dict = {
+            "指定なし": "",
+            "ストレート": "straight hair",
+            "ウェーブ": "wavy hair",
+            "巻き髪": "curly hair",
+            "サラサラ": "silky smooth hair",
+            "つやつや": "glossy hair",
+            "濡れ髪": "wet hair",
+            "ボサボサ": "messy hair",
+            "剛毛": "thick coarse hair",
+            "猫っ毛": "fine soft hair"
+        }
+        if ht_en_dict[hair_texture]:
+            res.append(ht_en_dict[hair_texture])
+
+        # 髪型 - 種類を増強
+        hair = st.selectbox("髪型", [
+            "指定なし", "ベリーショート", "ショートヘア", "ボブカット", "ミディアムヘア", "ロングヘア", "スーパーロング",
+            "ポニーテール", "サイドテール", "ツインテール", "ハーフアップ", "お団子ヘア", "三つ編み", "姫カット",
+            "ピクシーカット", "坊主", "モヒカン", "オールバック", "ツーブロック", "マッシュヘア", "アフロ", "ドレッドヘア", "パーマ"
+        ])
+        hair_en_dict = {
+            "指定なし": "",
+            "ベリーショート": "very short hair",
+            "ショートヘア": "short hair",
+            "ボブカット": "bob cut",
+            "ミディアムヘア": "medium hair",
+            "ロングヘア": "long hair",
+            "スーパーロング": "very long hair",
+            "ポニーテール": "ponytail",
+            "サイドテール": "side ponytail",
+            "ツインテール": "twintails",
+            "ハーフアップ": "half-up hair",
+            "お団子ヘア": "bun hair",
+            "三つ編み": "braided hair",
+            "姫カット": "hime cut",
+            "ピクシーカット": "pixie cut",
+            "坊主": "buzz cut",
+            "モヒカン": "mohawk",
+            "オールバック": "slicked back hair",
+            "ツーブロック": "undercut hair",
+            "マッシュヘア": "mushroom hair cut",
+            "アフロ": "afro hair",
+            "ドレッドヘア": "dreadlocks",
+            "パーマ": "permed hair"
+        }
+        if hair_en_dict[hair]:
+            res.append(hair_en_dict[hair])
+
+        face = st.selectbox("表情", ["指定なし", "微笑み", "満面の笑み", "キリッとした顔", "不敵な笑み", "叫び", "泣き顔", "驚き", "恥じらい", "無表情"])
+        face_en_dict = {"指定なし": "", "微笑み": "gentle smile", "満面の笑み": "big happy smile", "キリッとした顔": "determined face", "不敵な笑み": "smirk", "叫び": "shouting", "泣き顔": "crying", "驚き": "surprised", "恥じらい": "blushing", "無表情": "expressionless"}
+        if face_en_dict[face]:
+            res.append(face_en_dict[face])
         
-        pose = st.selectbox("ポーズ", ["立ち姿", "座る", "歩く", "戦う構え", "祈る", "自撮り", "振り返る", "しゃがむ", "腕を組む"])
-        res.append({"立ち姿": "standing straight", "座る": "sitting", "歩く": "walking", "戦う構え": "fighting stance", "祈る": "praying", "自撮り": "selfie pose", "振り返る": "looking back", "しゃがむ": "squatting", "腕を組む": "arms crossed"}[pose])
+        pose = st.selectbox("ポーズ", ["指定なし", "立ち姿", "座る", "歩く", "戦う構え", "祈る", "自撮り", "振り返る", "しゃがむ", "腕を組む"])
+        pose_en_dict = {"指定なし": "", "立ち姿": "standing straight", "座る": "sitting", "歩く": "walking", "戦う構え": "fighting stance", "祈る": "praying", "自撮り": "selfie pose", "振り返る": "looking back", "しゃがむ": "squatting", "腕を組む": "arms crossed"}
+        if pose_en_dict[pose]:
+            res.append(pose_en_dict[pose])
 
     return res, age, f_style, cloth

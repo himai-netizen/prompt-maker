@@ -213,6 +213,17 @@ with tab2:
     
     # クイックタグの定義（表示名: 英語プロンプト）
     tag_categories = {
+	    "🇯🇵 日本の伝統画風": {
+	            "浮世絵": "Ukiyo-e style, woodblock print, traditional japanese art",
+	            "水墨画": "Suibokuga, ink wash painting, sumi-e, Zen aesthetic",
+	            "金箔画": "Kinpaku-ga, gold leaf background, japanese gold foil art, opulent",
+	            "墨画": "Sumi-e, traditional japanese ink drawing, expressive brushwork",
+	            "大和絵": "Yamato-e style, classical japanese painting, soft colors",
+	            "日本画": "Nihonga style, traditional japanese pigments, mineral pigments",
+	            "屏風絵": "Byobu-e, japanese folding screen painting style",
+	            "襖絵": "Fusuma-e, japanese sliding door painting style",
+	            "絵巻物": "Emakimono, japanese horizontal handscroll painting style"
+        },
         "💡 演出・光の魔法": {
             "映画のような照明": "Cinematic Lighting",
             "天使の梯子": "God rays",
@@ -258,7 +269,30 @@ with tab2:
             "花吹雪": "Falling flower petals",
             "デジタルノイズ": "Glitch effect",
             "浮遊感": "Floating object, Zero gravity"
-        }
+        },
+    	"💇 髪型（男性向け）": {
+    	    "短髪": "short hair",
+    	    "ツーブロック": "undercut",
+    	    "マッシュ": "mushroom cut",
+    	    "オールバック": "slicked back",
+    	    "坊主": "buzz cut",
+    	    "モヒカン": "mohawk"
+   	 },
+   	 "💇 髪型（女性向け）": {
+   	     "ロングヘア": "long hair",
+   	     "ポニーテール": "ponytail",
+   	     "ツインテール": "twintails",
+   	     "ボブ": "bob cut",
+   	     "姫カット": "hime cut",
+   	     "ハーフアップ": "half-up"
+  	  },
+    "✨ 髪質・質感": {
+   	     "サラサラ": "silky smooth hair",
+   	     "つやつや": "glossy hair",
+   	     "濡れ髪": "wet hair",
+   	     "透明感のある髪": "translucent hair",
+   	     "ウェーブ": "wavy hair"
+    }
     }
 
     # カテゴリごとにボタンを配置
