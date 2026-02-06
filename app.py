@@ -160,7 +160,7 @@ st.title("🎨 AIプロンプト作成メーカー")
 st.header(f"2. {category}の詳細設定")
 
 # タブの作成
-tab1, tab2 = st.tabs(["⚙️ 詳細カスタマイズ", "🏷️ クイックタグ・パレット"])
+tab1, tab2, tab3, tab4 = st.tabs(["⚙️ 詳細カスタマイズ", "🏷️ クイックタグ・パレット", "👤 人物カスタマイズ", "画風・画材"])
 
 prompt_details = []
 history_title = subject 
@@ -203,7 +203,7 @@ with tab1:
 with tab2:
 # --- タグの一括削除ボタンを追加 ---
     if st.session_state.custom_keywords:
-        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True):
+        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True, key="clear_tab2"):
             st.session_state.custom_keywords = []
             st.toast("タグをすべて削除しました")
             st.rerun()
@@ -213,17 +213,6 @@ with tab2:
     
     # クイックタグの定義（表示名: 英語プロンプト）
     tag_categories = {
-	    "🇯🇵 日本の伝統画風": {
-	            "浮世絵": "Ukiyo-e style, woodblock print, traditional japanese art",
-	            "水墨画": "Suibokuga, ink wash painting, sumi-e, Zen aesthetic",
-	            "金箔画": "Kinpaku-ga, gold leaf background, japanese gold foil art, opulent",
-	            "墨画": "Sumi-e, traditional japanese ink drawing, expressive brushwork",
-	            "大和絵": "Yamato-e style, classical japanese painting, soft colors",
-	            "日本画": "Nihonga style, traditional japanese pigments, mineral pigments",
-	            "屏風絵": "Byobu-e, japanese folding screen painting style",
-	            "襖絵": "Fusuma-e, japanese sliding door painting style",
-	            "絵巻物": "Emakimono, japanese horizontal handscroll painting style"
-        },
         "💡 演出・光の魔法": {
             "映画のような照明": "Cinematic Lighting",
             "天使の梯子": "God rays",
@@ -270,6 +259,33 @@ with tab2:
             "デジタルノイズ": "Glitch effect",
             "浮遊感": "Floating object, Zero gravity"
         },
+    }
+
+    # カテゴリごとにボタンを配置
+    for cat_name, tags_dict in tag_categories.items():
+        st.write(f"**{cat_name}**")
+        # 5列に増やして、より多くのタグを並べやすくします
+        cols = st.columns(5) 
+        for i, (label_ja, tag_en) in enumerate(tags_dict.items()):
+            if cols[i % 5].button(label_ja, key=f"quick_{tag_en}"):
+                # セッション状態のカスタムキーワードリストに追加（英語の方を入れる）
+                if tag_en not in st.session_state.custom_keywords:
+                    st.session_state.custom_keywords.append(tag_en)
+                    st.toast(f"追加: {label_ja} ({tag_en})")
+                    st.rerun()
+
+with tab3:
+# --- タグの一括削除ボタンを追加 ---
+    if st.session_state.custom_keywords:
+        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True, key="clear_tab3"):
+            st.session_state.custom_keywords = []
+            st.toast("タグをすべて削除しました")
+            st.rerun()
+        st.divider()
+
+    st.info("人物に関する詳細なタグをカスタムキーワードに追加します。")
+
+    human_tags = {
     	"💇 髪型（男性向け）": {
     	    "短髪": "short hair",
     	    "ツーブロック": "undercut",
@@ -286,23 +302,92 @@ with tab2:
    	     "姫カット": "hime cut",
    	     "ハーフアップ": "half-up"
   	  },
-    "✨ 髪質・質感": {
+        "✨ 髪質・質感": {
    	     "サラサラ": "silky smooth hair",
    	     "つやつや": "glossy hair",
    	     "濡れ髪": "wet hair",
    	     "透明感のある髪": "translucent hair",
    	     "ウェーブ": "wavy hair"
-    }
+        }
     }
 
-    # カテゴリごとにボタンを配置
-    for cat_name, tags_dict in tag_categories.items():
+    for cat_name, tags_dict in human_tags.items():
         st.write(f"**{cat_name}**")
-        # 5列に増やして、より多くのタグを並べやすくします
         cols = st.columns(5) 
         for i, (label_ja, tag_en) in enumerate(tags_dict.items()):
-            if cols[i % 5].button(label_ja, key=f"quick_{tag_en}"):
-                # セッション状態のカスタムキーワードリストに追加（英語の方を入れる）
+            if cols[i % 5].button(label_ja, key=f"human_{tag_en}"):
+                if tag_en not in st.session_state.custom_keywords:
+                    st.session_state.custom_keywords.append(tag_en)
+                    st.toast(f"追加: {label_ja} ({tag_en})")
+                    st.rerun()
+
+# --- tab4 の修正（画材カテゴリの追加） ---
+with tab4:
+# --- タグの一括削除ボタンを追加 ---
+    if st.session_state.custom_keywords:
+        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True, key="clear_tab4"):
+            st.session_state.custom_keywords = []
+            st.toast("タグをすべて削除しました")
+            st.rerun()
+        st.divider()
+
+    st.info("画風やアートスタイルに関するタグをカスタムキーワードに追加します。")
+
+    jp_art_tags = {
+        "🇯🇵 日本の伝統画風": {
+            "浮世絵": "Ukiyo-e style, woodblock print, traditional japanese art",
+            "水墨画": "Suibokuga, ink wash painting, sumi-e, Zen aesthetic",
+            "金箔画": "Kinpaku-ga, gold leaf background, japanese gold foil art, opulent",
+            "墨画": "Sumi-e, traditional japanese ink drawing, expressive brushwork",
+            "大和絵": "Yamato-e style, classical japanese painting, soft colors",
+            "日本画": "Nihonga style, traditional japanese pigments, mineral pigments",
+            "屏風絵": "Byobu-e, japanese folding screen painting style",
+            "襖絵": "Fusuma-e, japanese sliding door painting style",
+            "絵巻物": "Emakimono, japanese horizontal handscroll painting style"
+        },
+        "🎨 画材・表現技法": {
+            "スプラッター水彩画": "splatter watercolor",
+            "グアッシュ画": "gouache painting",
+            "中国水彩画": "Chinese watercolor painting",
+            "オイルパステル画": "oil pastel",
+            "パレットナイフ": "palette knife painting, thick impasto",
+            "マーカー塗り": "marker painting",
+            "アルコールマーカー": "alcohol marker style, Copic",
+            "ボールペン": "ballpoint pen drawing",
+            "インク描画": "ink drawing",
+            "墨絵": "ink wash painting, sumi-e",
+            "鉛筆画": "pencil sketch, graphite drawing",
+            "色鉛筆画": "color pencil drawing",
+            "木炭スケッチ": "charcoal sketch",
+            "クレヨン": "crayon drawing",
+            "デジタルペインティング": "digital painting"
+        },
+        "📦 3Dグラフィックス": {
+            "Zbrush": "Zbrush sculpt, highly detailed organic modeling, clay render",
+            "Blender Render": "rendered in Blender, Cycles render, high quality PBR materials",
+            "3Dジオラマ": "miniature diorama style, tilt-shift photography, isometric view",
+            "3Dモデル": "3D model, character figure, high quality resin, soft lighting"
+        },
+        "🎨 その他の画風": {
+            "日本風アニメ": "japanese cel anime style, high quality cel shading",
+            "ちびキャラ": "chibi style, super deformed, cute small character",
+            "漫画": "manga style, monochrome, screen tone, high contrast",
+            "カートゥーン": "western cartoon style, vibrant colors, bold outlines",
+            "実写": "photorealistic, 8k uhd, highly detailed, raw photo",
+            "粘土アニメ": "claymation style, clay textures, stop-motion aesthetic",
+            "ホログラフィック": "holographic display, glowing translucent blue, laser projection",
+            "トゥーンレンダリング": "3D toon shaded, cel-shaded 3D, anime style 3D",
+            "ピクセルアート": "pixel art, 8-bit style, retro gaming aesthetic",
+            "水彩画": "watercolor painting, soft brush strokes, artistic texture",
+            "油絵": "oil painting style, heavy impasto, canvas texture, visible brushstrokes"
+        }
+    }
+
+    for cat_name, tags_dict in jp_art_tags.items():
+        st.write(f"**{cat_name}**")
+        cols = st.columns(5) 
+        for i, (label_ja, tag_en) in enumerate(tags_dict.items()):
+            if cols[i % 5].button(label_ja, key=f"jp_art_{tag_en}"):
                 if tag_en not in st.session_state.custom_keywords:
                     st.session_state.custom_keywords.append(tag_en)
                     st.toast(f"追加: {label_ja} ({tag_en})")
@@ -484,35 +569,7 @@ with c2:
     if aspect_ratio != "指定なし": prompt_details.append(ar_dict[aspect_ratio])
 
 with c3:
-    # 選択肢に「油絵」を追加
-    style_label = [
-        "日本風アニメ", "ちびキャラ", "漫画", "カートゥーン", "実写", 
-        "3Dモデル(フィギュア風)", "3Dジオラマ", "粘土アニメ", "Zbrush", 
-        "ホログラフィック", "Blender Render", "トゥーンレンダリング",
-        "ピクセルアート", "水彩画", "油絵"  # 追加
-    ]
-    style = st.selectbox("画風", style_label)
-    
-    # 辞書に油絵のプロンプトを定義
-    st_dict = {
-        "日本風アニメ": "japanese cel anime style, high quality cel shading",
-        "ちびキャラ": "chibi style, super deformed, cute small character",
-        "漫画": "manga style, monochrome, screen tone, high contrast",
-        "カートゥーン": "western cartoon style, vibrant colors, bold outlines",
-        "実写": "photorealistic, 8k uhd, highly detailed, raw photo",
-        "3Dモデル(フィギュア風)": "3D model, character figure, high quality resin, smooth surface, soft lighting",
-        "3Dジオラマ": "miniature diorama style, tilt-shift photography, tiny detailed world, isometric view",
-        "粘土アニメ": "claymation style, clay textures, stop-motion aesthetic, handmade look, Aardman style",
-        "Zbrush": "Zbrush sculpt, highly detailed organic modeling, clay render, digital sculpting masterpiece",
-        "ホログラフィック": "holographic display, glowing translucent blue, digital glitch, futuristic HUD, laser projection",
-        "Blender Render": "rendered in Blender, Cycles render, high quality PBR materials, global illumination",
-        "トゥーンレンダリング": "3D toon shaded, cel-shaded 3D, anime style 3D, Arcane style, thick strokes",
-        "ピクセルアート": "pixel art, 8-bit style, retro gaming aesthetic",
-        "水彩画": "watercolor painting, soft brush strokes, artistic texture",
-        "油絵": "oil painting style, heavy impasto, canvas texture, visible brushstrokes, classical masterpiece aesthetic" # 追加
-    }
-    
-    prompt_details.append(st_dict[style])
+    # 画風の項目はタブに移動したため削除
     picked_color = st.color_picker("全体のカラーテーマ", "#ffffff")
 
 # --- 6.5 追加オプション ---
