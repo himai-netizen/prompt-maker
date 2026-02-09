@@ -160,7 +160,9 @@ st.title("🎨 AIプロンプト作成メーカー")
 st.header(f"2. {category}の詳細設定")
 
 # タブの作成
-tab1, tab2, tab3, tab4 = st.tabs(["⚙️ 詳細カスタマイズ", "🏷️ クイックタグ・パレット", "👤 人物カスタマイズ", "画風・画材"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["⚙️ 詳細カスタマイズ", "🏷️ クイックタグ・パレット", "👤 人物カスタマイズ", "🎨 画質・質感", "🤖 メカニカル設計"])
+
+# --- (中略: tab1, tab2, tab3, tab4 の処理) ---
 
 prompt_details = []
 history_title = subject 
@@ -381,7 +383,7 @@ with tab4:
             "水彩画": "watercolor painting, soft brush strokes, artistic texture",
             "油絵": "oil painting style, heavy impasto, canvas texture, visible brushstrokes"
         }
-    }
+    } # ← ここで辞書を確実に閉じています
 
     for cat_name, tags_dict in jp_art_tags.items():
         st.write(f"**{cat_name}**")
@@ -392,6 +394,94 @@ with tab4:
                     st.session_state.custom_keywords.append(tag_en)
                     st.toast(f"追加: {label_ja} ({tag_en})")
                     st.rerun()
+
+with tab5:
+# --- タグの一括削除ボタンを追加 ---
+    if st.session_state.custom_keywords:
+        if st.button("🗑️ 全てのクイックタグをクリア", use_container_width=True, key="clear_tab5"):
+            st.session_state.custom_keywords = []
+            st.toast("タグをすべて削除しました")
+            st.rerun()
+        st.divider()
+
+    st.info("ロボット、パワードスーツ、軍事メカなどの詳細なパーツをカスタムキーワードに追加します。")
+
+    mecha_tags = {
+        "🚀 全体設計": {
+            "装甲パワードスーツ": "armored powered suit",
+            "重装甲": "heavy armor",
+            "戦争機械": "war machine",
+            "重武装メカ": "heavily armed mecha",
+            "空中要塞型": "aerial fortress type",
+            "未来的な軍事デザイン": "futuristic military design"
+        },
+        "🛡️ フレーム・装甲": {
+            "滑らかな外骨格": "sleek exoskeleton armor",
+            "四肢の強化装甲": "reinforced plating over limbs",
+            "装甲外骨格": "armored exoskeleton",
+            "セグメント装甲": "segmented armor",
+            "層状巨大外骨格": "massive reinforced exoskeleton with layered plating",
+            "分割装甲(フレーム露出)": "segmented armor panels revealing inner frame",
+            "白黒セグメント装甲": "sleek armored exoskeleton with white and black segmented plating",
+            "機械式大腿・強化関節": "mechanical thighs and reinforced joints",
+            "サイバーヘッドセット": "cybernetic headset with antenna fins",
+            "青いバイザー": "glowing blue visor",
+            "機械翼(スラスター付)": "gigantic mechanical wings with metallic feathers and glowing thrusters",
+            "青白分割装甲": "armored exoskeleton with segmented blue and white plating",
+            "機械脚(強化関節)": "mechanical legs with reinforced joints",
+            "未来派アンテナ": "futuristic headset and antenna fins",
+            "オレンジ重機械腕": "orange heavily mechanical arms with reinforced joints"
+        },
+        "⚔️ 兵装・武装": {
+            "ショルダーポッド": "compact shoulder pods",
+            "腕部ライフル": "arm-mounted rifle",
+            "肩用ミサイルポッド": "shoulder-mounted missile pods",
+            "2連装ガトリング": "twin arm-mounted rotary machine guns",
+            "肩用ミサイルサイロ": "shoulder-mounted missile silos",
+            "腕部レールガン": "dual rotary cannons on arms, arm-mounted railgun",
+            "浮遊ファンネル/ドローン": "multiple floating funnel pods and remote weapon drones orbiting around",
+            "統合マウント(背・脚)": "integrated weapon mounts on legs and back",
+            "大型黒色銃": "back-mounted mechanical large black gun weapons",
+            "ファンネルポッド": "multiple floating funnel pods"
+        },
+        "🎨 カラー・質感": {
+            "マットホワイト/グレー": "matte white and gray color scheme",
+            "黒赤マット装甲": "black and red color scheme, matte armor",
+            "ダメージ装甲": "battle-damaged plating",
+            "マットブラック/シルバー": "matte black and silver finish with glowing accents",
+            "オレンジ/赤パイピング": "orange massive reinforced exoskeleton with layered plating and red piping"
+        },
+        "⚙️ メカ構造・内部": {
+            "機械関節露出": "mechanical joints partially exposed",
+            "露出配線・ケーブル": "exposed wiring and cables",
+            "油圧ピストン": "hydraulic pistons",
+            "配線とピストン": "exposed wiring and hydraulic pistons",
+            "可視ワイヤリング": "visible wiring and cables"
+        },
+        "💨 機動力・推進": {
+            "統合バックスラスター": "back thrusters integrated into slim armor frame",
+            "ジェットパック": "back-mounted jetpack thrusters",
+            "大型ジェットスラスター": "oversized back-mounted jet thrusters",
+            "排気炎・飛行機雲": "exhaust flames trailing from boosters",
+            "可動パネル付機械翼": "gigantic mechanical wings with articulated panels and deployable fins",
+            "鋼鉄羽の追加翼": "additional large steel-feathered wings extending from back"
+        },
+        "📸 質感・演出": {
+            "拡散日光照明": "diffuse daylight illumination",
+            "工業マクロディテール": "industrial macro detailing"
+        }
+    } # ← ここでも辞書を確実に閉じています
+
+    for cat_name, tags_dict in mecha_tags.items():
+        st.write(f"**{cat_name}**")
+        cols = st.columns(5) 
+        for i, (label_ja, tag_en) in enumerate(tags_dict.items()):
+            if cols[i % 5].button(label_ja, key=f"mecha_{tag_en}_{i}"):
+                if tag_en not in st.session_state.custom_keywords:
+                    st.session_state.custom_keywords.append(tag_en)
+                    st.toast(f"追加: {label_ja} ({tag_en})")
+                    st.rerun()
+                    
 # --- 5. 自由入力・翻訳セクション ---
 st.divider()
 st.header("追加カスタムキーワード")
